@@ -1,17 +1,34 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, CheckCircle2, CircleDollarSign, RefreshCw, Scissors, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, CircleDollarSign, RefreshCw, Scissors, UserPlus, Wallet, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils";
 import { bookingStatuses, type AdminBooking, type BookingStatus } from "@/lib/admin-booking-types";
 
+type AdminUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  roles: string;
+  creditBalance: number;
+  createdAt: string;
+};
+
 export function AdminDashboard() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
+  const [newUser, setNewUser] = useState({ name: "", email: "", phone: "", password: "", role: "ADMIN" });
+  const [credit, setCredit] = useState({ userId: "", amount: "", note: "" });
 
   async function loadBookings() {
     setLoading(true);
@@ -25,6 +42,58 @@ export function AdminDashboard() {
       setError(loadError instanceof Error ? loadError.message : "Could not load bookings");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadUsers() {
+    setUsersLoading(true);
+    setUserError(null);
+    try {
+      const response = await fetch("/api/admin/users", { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Could not load users");
+      setUsers(payload.users);
+      setCredit((current) => ({ ...current, userId: current.userId || payload.users[0]?.id || "" }));
+    } catch (loadError) {
+      setUserError(loadError instanceof Error ? loadError.message : "Could not load users");
+    } finally {
+      setUsersLoading(false);
+    }
+  }
+
+  async function createDashboardUser(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUserError(null);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser)
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Could not create user");
+      setNewUser({ name: "", email: "", phone: "", password: "", role: "ADMIN" });
+      await loadUsers();
+    } catch (createError) {
+      setUserError(createError instanceof Error ? createError.message : "Could not create user");
+    }
+  }
+
+  async function addCredit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setUserError(null);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credit)
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Could not add store credit");
+      setCredit((current) => ({ ...current, amount: "", note: "" }));
+      await loadUsers();
+    } catch (creditError) {
+      setUserError(creditError instanceof Error ? creditError.message : "Could not add store credit");
     }
   }
 
@@ -49,6 +118,7 @@ export function AdminDashboard() {
 
   useEffect(() => {
     void loadBookings();
+    void loadUsers();
   }, []);
 
   const stats = useMemo(() => {
@@ -156,6 +226,96 @@ export function AdminDashboard() {
             </table>
           </div>
         </Card>
+
+        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+          <Card className="overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-gold/15 p-5">
+              <div>
+                <CardTitle>Users & Store Credit</CardTitle>
+                <CardContent className="mt-1 p-0">Admins, customers, roles, and current credit balance.</CardContent>
+              </div>
+              <Button type="button" variant="outline" onClick={loadUsers} disabled={usersLoading}>
+                <RefreshCw className={usersLoading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                Refresh
+              </Button>
+            </div>
+            {userError ? <div className="m-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{userError}</div> : null}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-gold/10 text-xs uppercase text-muted">
+                  <tr>
+                    <th className="px-4 py-3">User</th>
+                    <th className="px-4 py-3">Phone</th>
+                    <th className="px-4 py-3">Roles</th>
+                    <th className="px-4 py-3">Credit</th>
+                    <th className="px-4 py-3">Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersLoading ? (
+                    <tr><td className="px-4 py-8 text-center text-muted" colSpan={5}>Loading users...</td></tr>
+                  ) : users.length ? (
+                    users.map((user) => (
+                      <tr key={user.id} className="border-t border-gold/10">
+                        <td className="px-4 py-4">
+                          <p className="font-semibold text-foreground">{user.name || "-"}</p>
+                          <p className="text-xs text-muted">{user.email}</p>
+                        </td>
+                        <td className="px-4 py-4 text-muted">{user.phone || "-"}</td>
+                        <td className="px-4 py-4 text-muted">{user.roles || "-"}</td>
+                        <td className="px-4 py-4 font-semibold text-foreground">{formatCurrency(user.creditBalance)}</td>
+                        <td className="px-4 py-4 text-muted">{new Date(user.createdAt).toLocaleDateString("en-AE")}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td className="px-4 py-8 text-center text-muted" colSpan={5}>No users found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gold/15 text-gold"><UserPlus className="h-5 w-5" /></div>
+                <CardTitle>Create User</CardTitle>
+              </div>
+              <form onSubmit={createDashboardUser} className="mt-5 grid gap-3">
+                <Field label="Name"><Input value={newUser.name} onChange={(event) => setNewUser((current) => ({ ...current, name: event.target.value }))} required /></Field>
+                <Field label="Email"><Input value={newUser.email} onChange={(event) => setNewUser((current) => ({ ...current, email: event.target.value }))} type="email" required /></Field>
+                <Field label="Phone"><Input value={newUser.phone} onChange={(event) => setNewUser((current) => ({ ...current, phone: event.target.value }))} /></Field>
+                <Field label="Password"><Input value={newUser.password} onChange={(event) => setNewUser((current) => ({ ...current, password: event.target.value }))} type="password" minLength={8} required /></Field>
+                <Field label="Role">
+                  <select value={newUser.role} onChange={(event) => setNewUser((current) => ({ ...current, role: event.target.value }))} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
+                    <option value="ADMIN">Admin</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="BARBER">Barber</option>
+                    <option value="CUSTOMER">Customer</option>
+                  </select>
+                </Field>
+                <Button type="submit"><UserPlus className="h-4 w-4" />Create</Button>
+              </form>
+            </Card>
+
+            <Card>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gold/15 text-gold"><Wallet className="h-5 w-5" /></div>
+                <CardTitle>Add Store Credit</CardTitle>
+              </div>
+              <form onSubmit={addCredit} className="mt-5 grid gap-3">
+                <Field label="User">
+                  <select value={credit.userId} onChange={(event) => setCredit((current) => ({ ...current, userId: event.target.value }))} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground" required>
+                    {users.map((user) => <option key={user.id} value={user.id}>{user.name || user.email} - {formatCurrency(user.creditBalance)}</option>)}
+                  </select>
+                </Field>
+                <Field label="Amount"><Input value={credit.amount} onChange={(event) => setCredit((current) => ({ ...current, amount: event.target.value }))} type="number" min="1" step="0.01" required /></Field>
+                <Field label="Note"><Input value={credit.note} onChange={(event) => setCredit((current) => ({ ...current, note: event.target.value }))} placeholder="Reason or receipt number" /></Field>
+                <Button type="submit"><Wallet className="h-4 w-4" />Add credit</Button>
+              </form>
+            </Card>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -188,4 +348,13 @@ function formatDate(value: string) {
     timeStyle: "short",
     timeZone: "Asia/Dubai"
   }).format(new Date(value));
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {children}
+    </div>
+  );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { listAdminBookings, updateBookingStatus } from "@/lib/admin-bookings";
 import { bookingStatuses } from "@/lib/admin-booking-types";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const statusSchema = z.object({
   id: z.string().min(1),
@@ -9,6 +10,9 @@ const statusSchema = z.object({
 });
 
 export async function GET() {
+  const user = await requireAdmin();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const bookings = await listAdminBookings();
     return NextResponse.json({ bookings });
@@ -19,6 +23,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const user = await requireAdmin();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const parsed = statusSchema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
