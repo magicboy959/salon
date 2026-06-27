@@ -1,6 +1,21 @@
 import Image from "next/image";
+import { Clock, MapPin, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
+import { whatsappBookingUrl } from "@/services/notifications";
+
+type ContentItem =
+  | string
+  | {
+      name: string;
+      category: string;
+      duration: number;
+      priceLabel?: string;
+      price: number;
+      detail: string;
+    };
 
 export function ContentPage({
   title,
@@ -10,7 +25,7 @@ export function ContentPage({
 }: {
   title: string;
   subtitle: string;
-  items: string[];
+  items: ContentItem[];
   image?: string;
 }) {
   return (
@@ -25,14 +40,52 @@ export function ContentPage({
         </div>
       </section>
       <section className="py-16">
+        <div className="container-shell mb-8 grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+          <Card>
+            <MapPin className="mb-4 h-6 w-6 text-gold" />
+            <CardTitle>{siteConfig.address}</CardTitle>
+            <CardContent className="mt-3">
+              <a href={siteConfig.mapUrl} target="_blank" rel="noreferrer" className="text-gold hover:text-[#f4dc8c]">
+                Open location map
+              </a>
+            </CardContent>
+          </Card>
+          <Card>
+            <MessageCircle className="mb-4 h-6 w-6 text-gold" />
+            <CardTitle>{siteConfig.phone}</CardTitle>
+            <CardContent className="mt-3">Book directly on WhatsApp for the fastest confirmation.</CardContent>
+          </Card>
+        </div>
         <div className="container-shell grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <Card key={item}>
-              <CardTitle>{item}</CardTitle>
-              <CardContent className="mt-3">
-                Complete production module with CMS-ready content, SEO metadata, secure data handling,
-                responsive UI, accessibility states, and admin-management readiness.
-              </CardContent>
+            <Card key={typeof item === "string" ? item : item.name} className="flex flex-col">
+              {typeof item === "string" ? (
+                <>
+                  <CardTitle>{item}</CardTitle>
+                  <CardContent className="mt-3">Contact the salon for details and availability.</CardContent>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <Badge>{item.category}</Badge>
+                    <span className="inline-flex items-center gap-1 text-sm text-muted">
+                      <Clock className="h-4 w-4" />
+                      {item.duration} mins
+                    </span>
+                  </div>
+                  <CardTitle>{item.name}</CardTitle>
+                  <CardContent className="mt-3 flex flex-1 flex-col">
+                    <p className="leading-6">{item.detail}</p>
+                    <p className="mt-5 text-2xl font-bold text-gold">{item.priceLabel ?? `AED ${item.price}`}</p>
+                    <Button asChild className="mt-5 w-full">
+                      <a href={whatsappBookingUrl(`I want to book ${item.name}.`)} target="_blank" rel="noreferrer">
+                        <MessageCircle className="h-4 w-4" />
+                        Book on WhatsApp
+                      </a>
+                    </Button>
+                  </CardContent>
+                </>
+              )}
             </Card>
           ))}
         </div>

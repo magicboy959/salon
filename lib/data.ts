@@ -1,23 +1,134 @@
 import { Scissors, Sparkles, Crown, Home, Gem, ShieldCheck } from "lucide-react";
 
 export const services = [
-  { name: "Haircut", category: "Hair", duration: 35, price: 95 },
-  { name: "Fade", category: "Hair", duration: 40, price: 115 },
-  { name: "Kids Haircut", category: "Hair", duration: 30, price: 75 },
-  { name: "Hair Wash", category: "Hair", duration: 15, price: 35 },
-  { name: "Hair Treatment", category: "Hair", duration: 45, price: 180 },
-  { name: "Hair Spa", category: "Hair", duration: 60, price: 220 },
-  { name: "Hair Coloring", category: "Hair", duration: 90, price: 280 },
-  { name: "Keratin", category: "Treatment", duration: 120, price: 450 },
-  { name: "Beard Trim", category: "Beard", duration: 20, price: 55 },
-  { name: "Beard Styling", category: "Beard", duration: 30, price: 80 },
-  { name: "Facial", category: "Skin", duration: 45, price: 190 },
-  { name: "Waxing", category: "Skin", duration: 30, price: 120 },
-  { name: "Head Massage", category: "Wellness", duration: 25, price: 95 },
-  { name: "VIP Grooming", category: "Signature", duration: 120, price: 620 },
-  { name: "Wedding Groom Package", category: "Signature", duration: 180, price: 1200 },
-  { name: "Corporate Grooming", category: "Signature", duration: 90, price: 390 },
-  { name: "Home Service", category: "Mobile", duration: 90, price: 520 }
+  {
+    name: "The Cut",
+    category: "Hair",
+    duration: 30,
+    price: 140,
+    priceLabel: "AED 140",
+    detail: "A wash, cut and dry to complete your grooming look."
+  },
+  {
+    name: "Skin Fade",
+    category: "Hair",
+    duration: 30,
+    price: 160,
+    priceLabel: "AED 160",
+    detail: "A close skin fade finished with clean detailing and styling."
+  },
+  {
+    name: "Fade & Shave",
+    category: "Hair & Beard",
+    duration: 30,
+    price: 150,
+    priceLabel: "AED 150",
+    detail: "Fade service paired with a sharp shave for a complete finish."
+  },
+  {
+    name: "Beard Color",
+    category: "Color",
+    duration: 30,
+    price: 141,
+    priceLabel: "AED 141",
+    detail: "Targeted beard color refresh for a fuller, cleaner look."
+  },
+  {
+    name: "Beard & Moustache Color",
+    category: "Color",
+    duration: 30,
+    price: 202,
+    priceLabel: "AED 202",
+    detail: "Color service for beard and moustache with a natural finish."
+  },
+  {
+    name: "The Urban Look",
+    category: "Styling",
+    duration: 30,
+    price: 81,
+    priceLabel: "AED 81",
+    detail: "Quick grooming and styling for a fresh everyday look."
+  },
+  {
+    name: "The Colour",
+    category: "Color",
+    duration: 45,
+    price: 364,
+    priceLabel: "From AED 364",
+    detail: "Professional hair color consultation and application."
+  },
+  {
+    name: "Brazilian Blow Out",
+    category: "Treatment",
+    duration: 60,
+    price: 809,
+    priceLabel: "From AED 809",
+    detail: "Smoothing blow out treatment. Medium length starts at 60 minutes."
+  },
+  {
+    name: "Finishing Touch",
+    category: "Styling",
+    duration: 5,
+    price: 30,
+    priceLabel: "AED 30",
+    detail: "Fast clean-up for edges, neckline, and final polish."
+  },
+  {
+    name: "Therapeutic Hair Treatment",
+    category: "Treatment",
+    duration: 20,
+    price: 104,
+    priceLabel: "AED 104",
+    detail: "Focused hair treatment to support scalp comfort and hair condition."
+  },
+  {
+    name: "Kevin Murphy Treat Me Strength",
+    category: "Treatment",
+    duration: 20,
+    price: 289,
+    priceLabel: "AED 289",
+    detail: "New strengthening treatment for hair that needs extra support."
+  },
+  {
+    name: "Kevin Murphy Treat Me Hydrate",
+    category: "Treatment",
+    duration: 15,
+    price: 173,
+    priceLabel: "AED 173",
+    detail: "New hydration treatment for softer, healthier-looking hair."
+  },
+  {
+    name: "Kevin Murphy Treat Me Anti-Ageing",
+    category: "Treatment",
+    duration: 15,
+    price: 173,
+    priceLabel: "AED 173",
+    detail: "New anti-ageing hair treatment for a refreshed finish."
+  },
+  {
+    name: "Kevin Murphy Treat Me Repair",
+    category: "Treatment",
+    duration: 15,
+    price: 173,
+    priceLabel: "AED 173",
+    detail: "New repair treatment for stressed or damaged hair."
+  },
+  {
+    name: "White Hair Color - Short",
+    category: "Color",
+    duration: 30,
+    price: 110,
+    priceLabel: "From AED 110",
+    detail: "Short-hair white color coverage with a clean natural result."
+  },
+  {
+    name: "Kids Cut",
+    category: "Hair",
+    duration: 15,
+    price: 95,
+    priceLabel: "AED 95",
+    detail: "Haircut for children under 10."
+  }
 ] as const;
 
 export const serviceHighlights = [
