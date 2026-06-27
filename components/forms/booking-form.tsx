@@ -52,24 +52,24 @@ export function BookingForm() {
           <Input {...form.register("time")} type="time" />
         </Field>
         <Field label="Appointment type">
-          <select {...form.register("appointmentType")} className="h-11 w-full rounded-md border border-gold/25 bg-black/45 px-3 text-sm text-white">
+          <select {...form.register("appointmentType")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
             <option value="SALON">Salon</option>
             <option value="HOME">Home</option>
           </select>
         </Field>
         <Field label="Service">
-          <select {...form.register("serviceIds.0")} className="h-11 w-full rounded-md border border-gold/25 bg-black/45 px-3 text-sm text-white">
+          <select {...form.register("serviceIds.0")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
             {services.map((service) => <option key={service.name} value={service.name}>{service.name}</option>)}
           </select>
         </Field>
         <Field label="Barber">
-          <select {...form.register("barberId")} className="h-11 w-full rounded-md border border-gold/25 bg-black/45 px-3 text-sm text-white">
+          <select {...form.register("barberId")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
             <option value="">Any master barber</option>
             {barbers.map((barber) => <option key={barber.name} value={barber.name}>{barber.name}</option>)}
           </select>
         </Field>
         <Field label="Payment">
-          <select {...form.register("paymentMethod")} className="h-11 w-full rounded-md border border-gold/25 bg-black/45 px-3 text-sm text-white">
+          <select {...form.register("paymentMethod")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
             <option value="CASH">Cash</option>
             <option value="CARD">Card</option>
             <option value="STRIPE">Stripe</option>
@@ -100,7 +100,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     <div className="space-y-2">
       <Label>{label}</Label>
       {children}
-      {error ? <p className="text-xs text-red-300">{error}</p> : null}
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }

@@ -33,11 +33,11 @@ export function ContentPage({
     <>
       <section className="relative overflow-hidden border-b border-gold/15 py-24">
         {image ? <Image src={image} alt="" fill className="object-cover opacity-25" sizes="100vw" /> : null}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 to-[#050505]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/82 to-[#fffaf0]/65" />
         <div className="container-shell relative">
           <Badge>{title}</Badge>
-          <h1 className="mt-6 max-w-4xl text-5xl font-bold text-white">{title}</h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-200">{subtitle}</p>
+          <h1 className="mt-6 max-w-4xl text-5xl font-bold text-foreground">{title}</h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-muted">{subtitle}</p>
         </div>
       </section>
       <section className="py-16">
@@ -46,7 +46,7 @@ export function ContentPage({
             <MapPin className="mb-4 h-6 w-6 text-gold" />
             <CardTitle>{siteConfig.address}</CardTitle>
             <CardContent className="mt-3">
-              <a href={siteConfig.mapUrl} target="_blank" rel="noreferrer" className="text-gold hover:text-[#f4dc8c]">
+              <a href={siteConfig.mapUrl} target="_blank" rel="noreferrer" className="text-gold hover:text-[#8c6818]">
                 Open location map
               </a>
             </CardContent>

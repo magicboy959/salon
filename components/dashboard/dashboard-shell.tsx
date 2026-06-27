@@ -4,7 +4,7 @@ export function DashboardShell({ title, modules }: { title: string; modules: str
   return (
     <section className="py-12">
       <div className="container-shell">
-        <h1 className="text-4xl font-bold text-white">{title}</h1>
+        <h1 className="text-4xl font-bold text-foreground">{title}</h1>
         <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {modules.map((module, index) => (
             <Card key={module}>

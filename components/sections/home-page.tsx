@@ -34,12 +34,12 @@ export async function HomePage({ locale }: { locale: string }) {
           className="object-cover opacity-42"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/55 to-[#050505]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/92 via-white/72 to-white/18" />
         <div className="container-shell relative flex min-h-[calc(100vh-80px)] items-center py-16">
           <div className="max-w-3xl">
             <Badge>{t("eyebrow")}</Badge>
-            <h1 className="mt-6 text-5xl font-bold leading-tight text-white md:text-7xl">{t("title")}</h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-200">{t("subtitle")}</p>
+            <h1 className="mt-6 text-5xl font-bold leading-tight text-foreground md:text-7xl">{t("title")}</h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">{t("subtitle")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link href={`/${locale}/book`}>
@@ -70,7 +70,7 @@ export async function HomePage({ locale }: { locale: string }) {
         </div>
       </Section>
 
-      <section className="border-y border-gold/15 bg-black/35 py-10">
+      <section className="border-y border-gold/15 bg-white/65 py-10">
         <div className="container-shell grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((item) => (
             <div key={item.label} className="text-center">
@@ -128,7 +128,7 @@ export async function HomePage({ locale }: { locale: string }) {
             <Card key={review.name}>
               <div className="mb-4 flex gap-1 text-gold">{Array.from({ length: review.rating }).map((_, i) => <Star key={i} className="h-4 w-4 fill-gold" />)}</div>
               <CardContent className="text-base leading-7">&ldquo;{review.text}&rdquo;</CardContent>
-              <p className="mt-5 font-semibold text-white">{review.name}</p>
+              <p className="mt-5 font-semibold text-foreground">{review.name}</p>
             </Card>
           ))}
         </div>
@@ -164,7 +164,7 @@ export async function HomePage({ locale }: { locale: string }) {
         </div>
       </Section>
 
-      <section className="bg-gold py-12 text-black">
+      <section className="bg-gold py-12 text-white">
         <div className="container-shell flex flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
             <h2 className="text-3xl font-bold">{t("homeService")}</h2>
@@ -212,7 +212,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="py-16">
       <div className="container-shell">
-        <h2 className="mb-8 text-3xl font-bold text-white md:text-4xl">{title}</h2>
+        <h2 className="mb-8 text-3xl font-bold text-foreground md:text-4xl">{title}</h2>
         {children}
       </div>
     </section>
