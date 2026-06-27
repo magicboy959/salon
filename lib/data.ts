@@ -62,7 +62,7 @@ export const services = [
     price: 364,
     priceLabel: "From AED 364",
     detail: "Professional hair color consultation and application.",
-    image: "https://images.unsplash.com/photo-1593702288056-7927b442d653?auto=format&fit=crop&w=900&q=80"
+    image: "https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Brazilian Blow Out",
