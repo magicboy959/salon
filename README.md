@@ -1,6 +1,6 @@
 # Alshamy Alaswad Salon for Gents
 
-Production-ready multilingual luxury salon platform built with Next.js 15, TypeScript, Tailwind CSS, MySQL, Auth.js, next-intl, React Hook Form, Zod, TanStack Query, UploadThing, Resend, Google Maps, WhatsApp links, and Vercel deployment defaults.
+Production-ready multilingual luxury salon platform built with Next.js 15, TypeScript, Tailwind CSS, MySQL, Auth.js, next-intl, React Hook Form, Zod, TanStack Query, UploadThing, SMTP email, Google Maps, WhatsApp links, and Vercel deployment defaults.
 
 ## Quick Start
 
@@ -17,7 +17,7 @@ Open `http://localhost:3000/en`.
 ## Production Checklist
 
 - Configure MySQL in `DATABASE_URL`.
-- Set `AUTH_SECRET`, OAuth credentials, Resend, Google Maps, UploadThing, WhatsApp, and optional Stripe keys.
+- Set `AUTH_SECRET`, OAuth credentials, SMTP email, Google Maps, UploadThing, WhatsApp, and optional Stripe keys.
 - Run `npm run typecheck`, `npm run lint`, `npm run test`, and `npm run build`.
 - Deploy to Vercel with the environment variables from `.env.example`.
 

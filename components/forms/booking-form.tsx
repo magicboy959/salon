@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { CalendarCheck } from "lucide-react";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 
 export function BookingForm({ locale = "en" }: { locale?: string }) {
+  const [confirmation, setConfirmation] = useState<string | null>(null);
   const copy =
     locale === "ar"
       ? {
@@ -44,7 +46,8 @@ export function BookingForm({ locale = "en" }: { locale?: string }) {
             membership: "عضوية"
           },
           submit: "تأكيد الحجز",
-          submitting: "جاري التأكيد..."
+          submitting: "جاري التأكيد...",
+          success: "تم استلام الحجز. رقم الطلب:"
         }
       : {
           labels: {
@@ -76,7 +79,8 @@ export function BookingForm({ locale = "en" }: { locale?: string }) {
             membership: "Membership"
           },
           submit: "Confirm booking",
-          submitting: "Confirming..."
+          submitting: "Confirming...",
+          success: "Booking received. Order number:"
         };
 
   const form = useForm<BookingInput>({
@@ -97,6 +101,8 @@ export function BookingForm({ locale = "en" }: { locale?: string }) {
       body: JSON.stringify(values)
     });
     if (!response.ok) throw new Error("Booking failed");
+    const payload = await response.json();
+    setConfirmation(payload.orderNumber ?? payload.id);
     form.reset();
   }
 
@@ -157,6 +163,11 @@ export function BookingForm({ locale = "en" }: { locale?: string }) {
             {form.formState.isSubmitting ? copy.submitting : copy.submit}
           </Button>
         </div>
+        {confirmation ? (
+          <div className="md:col-span-2 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+            {copy.success} {confirmation}. {locale === "ar" ? "تم إرسال التفاصيل إلى بريدك الإلكتروني." : "Details were sent to your email."}
+          </div>
+        ) : null}
       </form>
     </Card>
   );

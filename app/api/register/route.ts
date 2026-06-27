@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createUser } from "@/lib/users";
+import { sendWelcomeEmail } from "@/services/notifications";
 
 const registerSchema = z.object({
   name: z.string().min(2).max(120),
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const id = await createUser({ ...parsed.data, role: "CUSTOMER" });
+    await Promise.allSettled([sendWelcomeEmail({ to: parsed.data.email, name: parsed.data.name })]);
     return NextResponse.json({ id });
   } catch (error) {
     if (error instanceof Error && error.message === "EMAIL_EXISTS") {
