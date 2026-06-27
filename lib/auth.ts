@@ -1,11 +1,11 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import type { RowDataPacket } from "mysql2";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { query } from "@/lib/db";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -13,7 +13,6 @@ const credentialsSchema = z.object({
 });
 
 export const authConfig = {
-  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/en/login"
@@ -29,7 +28,11 @@ export const authConfig = {
       async authorize(raw) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
-        const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+        const users = await query<Array<RowDataPacket & { id: string; name: string | null; email: string | null; image: string | null; passwordHash: string | null }>>(
+          "SELECT id, name, email, image, passwordHash FROM User WHERE email = ? LIMIT 1",
+          [parsed.data.email]
+        );
+        const user = users[0];
         if (!user?.passwordHash) return null;
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!valid) return null;
