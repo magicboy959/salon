@@ -182,12 +182,55 @@ export const barbers = [
 ] as const;
 
 export const gallery = [
-  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1000&q=80",
-  "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=1000&q=80",
-  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1000&q=80",
-  "https://images.unsplash.com/photo-1622286346003-c5c7e63b1088?auto=format&fit=crop&w=1000&q=80",
-  "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1000&q=80",
-  "https://images.unsplash.com/photo-1593702288056-7927b442d653?auto=format&fit=crop&w=1000&q=80"
+  {
+    type: "image",
+    src: "/gallery/store-front.png",
+    alt: "Alshanab Alaswad Gents Salon storefront in Dubai Satwa",
+    title: "Storefront"
+  },
+  {
+    type: "image",
+    src: "/gallery/salon-chair-portrait.jpeg",
+    alt: "Customer seated in a barber chair inside Alshanab Alaswad Gents Salon",
+    title: "Salon Chair"
+  },
+  {
+    type: "image",
+    src: "/gallery/skin-fade-profile.jpeg",
+    alt: "Fresh skin fade profile haircut inside the salon",
+    title: "Skin Fade"
+  },
+  {
+    type: "image",
+    src: "/gallery/classic-cut-profile.jpeg",
+    alt: "Classic men's haircut profile after grooming service",
+    title: "Classic Cut"
+  },
+  {
+    type: "image",
+    src: "/gallery/salon-logo-wall.jpeg",
+    alt: "Salon wall logo with customer after haircut",
+    title: "Salon Interior"
+  },
+  {
+    type: "image",
+    src: "/gallery/hair-color-process.jpeg",
+    alt: "Hair color process inside Alshanab Alaswad Gents Salon",
+    title: "Hair Colour"
+  },
+  {
+    type: "image",
+    src: "/gallery/treatment-process.jpeg",
+    alt: "Hair treatment process in the salon",
+    title: "Hair Treatment"
+  },
+  {
+    type: "video",
+    src: "/gallery/salon-video.mp4",
+    poster: "/gallery/store-front.png",
+    alt: "Salon video from Alshanab Alaswad Gents Salon",
+    title: "Salon Video"
+  }
 ] as const;
 
 export const offers = [

@@ -20,6 +20,7 @@ import { whatsappBookingUrl } from "@/services/notifications";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { GalleryGrid } from "@/components/sections/gallery-grid";
 
 export async function HomePage({ locale }: { locale: string }) {
   const t = await getTranslations("home");
@@ -113,13 +114,7 @@ export async function HomePage({ locale }: { locale: string }) {
       </Section>
 
       <Section title={t("gallery")}>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {gallery.map((src, index) => (
-            <div key={src} className="relative aspect-[4/3] overflow-hidden rounded-lg border border-gold/20">
-              <Image src={src} alt={`Salon gallery ${index + 1}`} fill className="object-cover transition duration-500 hover:scale-105" sizes="33vw" />
-            </div>
-          ))}
-        </div>
+        <GalleryGrid items={gallery} limit={6} />
       </Section>
 
       <Section title={t("reviews")}>

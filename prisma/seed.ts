@@ -115,13 +115,13 @@ async function main() {
     create: { branchId: branch.id, productId: product.id, quantity: 40, threshold: 8 }
   });
 
-  for (const [index, imageUrl] of gallery.entries()) {
+  for (const [index, item] of gallery.filter((galleryItem) => galleryItem.type === "image").entries()) {
     await prisma.galleryItem.create({
       data: {
-        title: `Salon Gallery ${index + 1}`,
-        imageUrl,
-        alt: "Luxury men's salon grooming result",
-        category: "Salon"
+        title: item.title,
+        imageUrl: item.src,
+        alt: item.alt,
+        category: index === 0 ? "Storefront" : "Salon"
       }
     });
   }
