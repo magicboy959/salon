@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "title": "Alshamy Alaswad Salon for Gents",
+    "description": "Luxury men's salon, barbering, home service, memberships, and VIP grooming in Dubai."
+  },
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "homeServices": "Home Services",
+    "barbers": "Barbers",
+    "gallery": "Gallery",
+    "offers": "Offers",
+    "membership": "Membership",
+    "pricing": "Pricing",
+    "book": "Book",
+    "contact": "Contact",
+    "about": "About",
+    "reviews": "Reviews",
+    "blog": "Blog",
+    "faq": "FAQ",
+    "careers": "Careers",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "home": {
+    "eyebrow": "Luxury men's grooming in Dubai",
+    "title": "Alshamy Alaswad Salon for Gents",
+    "subtitle": "Precision barbering, VIP grooming suites, memberships, and premium home service with secure booking and live arrival status.",
+    "book": "Book appointment",
+    "whatsapp": "WhatsApp concierge",
+    "featured": "Featured Services",
+    "why": "Why Choose Us",
+    "barbers": "Master Barbers",
+    "gallery": "Gallery",
+    "reviews": "Customer Reviews",
+    "membership": "Membership",
+    "offers": "Offers",
+    "homeService": "Book a barber at home",
+    "blog": "Grooming Journal",
+    "contact": "Contact and Map"
+  },
+  "booking": {
+    "title": "Book Appointment",
+    "subtitle": "Choose salon or home service, multiple services, barber, date, payment method, and confirmation channel.",
+    "customerName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "date": "Date",
+    "time": "Time",
+    "type": "Appointment type",
+    "salon": "Salon",
+    "home": "Home",
+    "services": "Services",
+    "barber": "Barber",
+    "address": "Address",
+    "notes": "Notes",
+    "payment": "Payment",
+    "submit": "Confirm booking"
+  },
+  "dashboard": {
+    "admin": "Admin Dashboard",
+    "customer": "Customer Portal",
+    "barber": "Barber Portal"
+  },
+  "common": {
+    "from": "From",
+    "minutes": "min",
+    "learnMore": "Learn more",
+    "viewAll": "View all",
+    "aed": "AED"
+  }
+}

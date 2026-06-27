@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --background: #050505;
+  --foreground: #f8f5ef;
+  --muted: #b7aa92;
+  --gold: #d6b35a;
+  --gold-soft: #f4dc8c;
+  --panel: rgba(18, 18, 18, 0.76);
+  --border: rgba(214, 179, 90, 0.22);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --font-sans: var(--font-inter);
+  --font-arabic: var(--font-arabic);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(214, 179, 90, 0.14), transparent 34rem),
+    linear-gradient(135deg, #050505 0%, #111 48%, #060606 100%);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(214, 179, 90, 0.42);
+  color: white;
+}
+
+.glass {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.gold-text {
+  color: var(--gold);
+}
+
+.container-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
