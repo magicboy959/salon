@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Menu } from "lucide-react";
 import { publicNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
-import { Button } from "@/components/ui/button";
-import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export async function Navbar({ locale }: { locale: string }) {
   const t = await getTranslations("nav");
+  const navItems = publicNav.map((item) => ({ href: item.href, label: t(item.key) }));
+
   return (
     <header className="sticky top-0 z-50 border-b border-gold/15 bg-white/88 backdrop-blur-xl">
       <div className="container-shell flex h-20 items-center justify-between gap-6">
@@ -21,21 +21,13 @@ export async function Navbar({ locale }: { locale: string }) {
           </span>
         </Link>
         <nav className="hidden items-center gap-4 text-sm text-muted lg:flex">
-          {publicNav.slice(0, 8).map((item) => (
+          {navItems.slice(0, 8).map((item) => (
             <Link key={item.href} href={`/${locale}${item.href}`} className="hover:text-gold">
-              {t(item.key)}
+              {item.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher locale={locale} />
-          <Button asChild size="sm">
-            <Link href={`/${locale}/book`}>{t("book")}</Link>
-          </Button>
-          <Button variant="ghost" size="sm" className="lg:hidden" aria-label="Open menu">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </div>
+        <MobileMenu locale={locale} items={navItems} bookLabel={t("book")} />
       </div>
     </header>
   );
