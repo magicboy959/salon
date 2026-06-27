@@ -9,5 +9,5 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
   const user = await requireAdmin();
   if (!user) redirect(`/${locale}/login`);
 
-  return <AdminDashboard />;
+  return <AdminDashboard adminUser={{ name: user.name, email: user.email, roles: user.roles }} locale={locale} />;
 }
