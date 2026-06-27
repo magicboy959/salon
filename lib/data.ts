@@ -144,6 +144,33 @@ export const services = [
     priceLabel: "AED 95",
     detail: "Haircut for children under 10.",
     image: "https://images.unsplash.com/photo-1508341591423-4347099e1f19?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    name: "Manicure",
+    category: "Nails",
+    duration: 30,
+    price: 129,
+    priceLabel: "AED 129",
+    detail: "Clean nail care and grooming finish for hands.",
+    image: "/gallery/salon-logo-wall.jpeg"
+  },
+  {
+    name: "Pedicure",
+    category: "Nails",
+    duration: 40,
+    price: 159,
+    priceLabel: "AED 159",
+    detail: "Foot nail care and grooming finish for a refreshed look.",
+    image: "/gallery/salon-chair-portrait.jpeg"
+  },
+  {
+    name: "Massage",
+    category: "Wellness",
+    duration: 60,
+    price: 200,
+    priceLabel: "AED 200 / hour",
+    detail: "Massage service for men and women with male or female masseuse selection.",
+    image: "/gallery/store-front.png"
   }
 ] as const;
 

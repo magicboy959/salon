@@ -1,6 +1,7 @@
 export const publicNav = [
   { href: "/", key: "home" },
   { href: "/services", key: "services" },
+  { href: "/massage", key: "massage" },
   { href: "/home-services", key: "homeServices" },
   { href: "/barbers", key: "barbers" },
   { href: "/gallery", key: "gallery" },
