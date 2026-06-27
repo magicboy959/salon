@@ -12,7 +12,15 @@ export default async function middleware(request: NextRequest) {
 
   if (adminMatch) {
     const locale = adminMatch[1] ?? "en";
-    const token = await getToken({ req: request, secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET });
+    const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${locale}/login`;
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    const token = await getToken({ req: request, secret });
     const roles = Array.isArray(token?.roles) ? token.roles : [];
     const isAdmin = roles.some((role) => typeof role === "string" && adminRoles.has(role));
     if (isAdmin) return intlMiddleware(request);
