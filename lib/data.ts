@@ -7,7 +7,8 @@ export const services = [
     duration: 30,
     price: 140,
     priceLabel: "AED 140",
-    detail: "A wash, cut and dry to complete your grooming look."
+    detail: "A wash, cut and dry to complete your grooming look.",
+    image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Skin Fade",
@@ -15,7 +16,8 @@ export const services = [
     duration: 30,
     price: 160,
     priceLabel: "AED 160",
-    detail: "A close skin fade finished with clean detailing and styling."
+    detail: "A close skin fade finished with clean detailing and styling.",
+    image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Fade & Shave",
@@ -23,7 +25,8 @@ export const services = [
     duration: 30,
     price: 150,
     priceLabel: "AED 150",
-    detail: "Fade service paired with a sharp shave for a complete finish."
+    detail: "Fade service paired with a sharp shave for a complete finish.",
+    image: "https://images.unsplash.com/photo-1622286346003-c5c7e63b1088?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Beard Color",
@@ -31,7 +34,8 @@ export const services = [
     duration: 30,
     price: 141,
     priceLabel: "AED 141",
-    detail: "Targeted beard color refresh for a fuller, cleaner look."
+    detail: "Targeted beard color refresh for a fuller, cleaner look.",
+    image: "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Beard & Moustache Color",
@@ -39,7 +43,8 @@ export const services = [
     duration: 30,
     price: 202,
     priceLabel: "AED 202",
-    detail: "Color service for beard and moustache with a natural finish."
+    detail: "Color service for beard and moustache with a natural finish.",
+    image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "The Urban Look",
@@ -47,7 +52,8 @@ export const services = [
     duration: 30,
     price: 81,
     priceLabel: "AED 81",
-    detail: "Quick grooming and styling for a fresh everyday look."
+    detail: "Quick grooming and styling for a fresh everyday look.",
+    image: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "The Colour",
@@ -55,7 +61,8 @@ export const services = [
     duration: 45,
     price: 364,
     priceLabel: "From AED 364",
-    detail: "Professional hair color consultation and application."
+    detail: "Professional hair color consultation and application.",
+    image: "https://images.unsplash.com/photo-1593702288056-7927b442d653?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Brazilian Blow Out",
@@ -63,7 +70,8 @@ export const services = [
     duration: 60,
     price: 809,
     priceLabel: "From AED 809",
-    detail: "Smoothing blow out treatment. Medium length starts at 60 minutes."
+    detail: "Smoothing blow out treatment. Medium length starts at 60 minutes.",
+    image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Finishing Touch",
@@ -71,7 +79,8 @@ export const services = [
     duration: 5,
     price: 30,
     priceLabel: "AED 30",
-    detail: "Fast clean-up for edges, neckline, and final polish."
+    detail: "Fast clean-up for edges, neckline, and final polish.",
+    image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Therapeutic Hair Treatment",
@@ -79,7 +88,8 @@ export const services = [
     duration: 20,
     price: 104,
     priceLabel: "AED 104",
-    detail: "Focused hair treatment to support scalp comfort and hair condition."
+    detail: "Focused hair treatment to support scalp comfort and hair condition.",
+    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Kevin Murphy Treat Me Strength",
@@ -87,7 +97,8 @@ export const services = [
     duration: 20,
     price: 289,
     priceLabel: "AED 289",
-    detail: "New strengthening treatment for hair that needs extra support."
+    detail: "New strengthening treatment for hair that needs extra support.",
+    image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Kevin Murphy Treat Me Hydrate",
@@ -95,7 +106,8 @@ export const services = [
     duration: 15,
     price: 173,
     priceLabel: "AED 173",
-    detail: "New hydration treatment for softer, healthier-looking hair."
+    detail: "New hydration treatment for softer, healthier-looking hair.",
+    image: "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Kevin Murphy Treat Me Anti-Ageing",
@@ -103,7 +115,8 @@ export const services = [
     duration: 15,
     price: 173,
     priceLabel: "AED 173",
-    detail: "New anti-ageing hair treatment for a refreshed finish."
+    detail: "New anti-ageing hair treatment for a refreshed finish.",
+    image: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Kevin Murphy Treat Me Repair",
@@ -111,7 +124,8 @@ export const services = [
     duration: 15,
     price: 173,
     priceLabel: "AED 173",
-    detail: "New repair treatment for stressed or damaged hair."
+    detail: "New repair treatment for stressed or damaged hair.",
+    image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "White Hair Color - Short",
@@ -119,7 +133,8 @@ export const services = [
     duration: 30,
     price: 110,
     priceLabel: "From AED 110",
-    detail: "Short-hair white color coverage with a clean natural result."
+    detail: "Short-hair white color coverage with a clean natural result.",
+    image: "https://images.unsplash.com/photo-1523263685509-57c1d050d19b?auto=format&fit=crop&w=900&q=80"
   },
   {
     name: "Kids Cut",
@@ -127,7 +142,8 @@ export const services = [
     duration: 15,
     price: 95,
     priceLabel: "AED 95",
-    detail: "Haircut for children under 10."
+    detail: "Haircut for children under 10.",
+    image: "https://images.unsplash.com/photo-1508341591423-4347099e1f19?auto=format&fit=crop&w=900&q=80"
   }
 ] as const;
 

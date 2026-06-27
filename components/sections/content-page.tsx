@@ -15,6 +15,7 @@ type ContentItem =
       priceLabel?: string;
       price: number;
       detail: string;
+      image?: string;
     };
 
 export function ContentPage({
@@ -58,7 +59,10 @@ export function ContentPage({
         </div>
         <div className="container-shell grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <Card key={typeof item === "string" ? item : item.name} className="flex flex-col">
+            <Card
+              key={typeof item === "string" ? item : item.name}
+              className={typeof item === "string" ? "flex flex-col" : "flex flex-col overflow-hidden p-0"}
+            >
               {typeof item === "string" ? (
                 <>
                   <CardTitle>{item}</CardTitle>
@@ -66,24 +70,31 @@ export function ContentPage({
                 </>
               ) : (
                 <>
-                  <div className="mb-4 flex flex-wrap items-center gap-2">
-                    <Badge>{item.category}</Badge>
-                    <span className="inline-flex items-center gap-1 text-sm text-muted">
-                      <Clock className="h-4 w-4" />
-                      {item.duration} mins
-                    </span>
+                  {item.image ? (
+                    <div className="relative aspect-[4/3] overflow-hidden border-b border-gold/15">
+                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" />
+                    </div>
+                  ) : null}
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="mb-4 flex flex-wrap items-center gap-2">
+                      <Badge>{item.category}</Badge>
+                      <span className="inline-flex items-center gap-1 text-sm text-muted">
+                        <Clock className="h-4 w-4" />
+                        {item.duration} mins
+                      </span>
+                    </div>
+                    <CardTitle>{item.name}</CardTitle>
+                    <CardContent className="mt-3 flex flex-1 flex-col">
+                      <p className="leading-6">{item.detail}</p>
+                      <p className="mt-5 text-2xl font-bold text-gold">{item.priceLabel ?? `AED ${item.price}`}</p>
+                      <Button asChild className="mt-5 w-full">
+                        <a href={whatsappBookingUrl(`I want to book ${item.name}.`)} target="_blank" rel="noreferrer">
+                          <MessageCircle className="h-4 w-4" />
+                          Book on WhatsApp
+                        </a>
+                      </Button>
+                    </CardContent>
                   </div>
-                  <CardTitle>{item.name}</CardTitle>
-                  <CardContent className="mt-3 flex flex-1 flex-col">
-                    <p className="leading-6">{item.detail}</p>
-                    <p className="mt-5 text-2xl font-bold text-gold">{item.priceLabel ?? `AED ${item.price}`}</p>
-                    <Button asChild className="mt-5 w-full">
-                      <a href={whatsappBookingUrl(`I want to book ${item.name}.`)} target="_blank" rel="noreferrer">
-                        <MessageCircle className="h-4 w-4" />
-                        Book on WhatsApp
-                      </a>
-                    </Button>
-                  </CardContent>
                 </>
               )}
             </Card>
