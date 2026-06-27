@@ -11,7 +11,74 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 
-export function BookingForm() {
+export function BookingForm({ locale = "en" }: { locale?: string }) {
+  const copy =
+    locale === "ar"
+      ? {
+          labels: {
+            name: "الاسم الكامل",
+            email: "البريد الإلكتروني",
+            phone: "الهاتف",
+            date: "التاريخ",
+            time: "الوقت",
+            type: "نوع الموعد",
+            service: "الخدمة",
+            barber: "الحلاق",
+            payment: "الدفع",
+            address: "العنوان",
+            notes: "ملاحظات"
+          },
+          placeholders: {
+            name: "اسمك",
+            phone: "+971...",
+            address: "مطلوب للخدمة المنزلية",
+            notes: "مواقف السيارات، الستايل المفضل، الحساسية، تعليمات الوصول..."
+          },
+          options: {
+            salon: "في الصالون",
+            home: "في المنزل",
+            anyBarber: "أي حلاق محترف",
+            cash: "نقدا",
+            card: "بطاقة",
+            stripe: "دفع إلكتروني",
+            membership: "عضوية"
+          },
+          submit: "تأكيد الحجز",
+          submitting: "جاري التأكيد..."
+        }
+      : {
+          labels: {
+            name: "Full name",
+            email: "Email",
+            phone: "Phone",
+            date: "Date",
+            time: "Time",
+            type: "Appointment type",
+            service: "Service",
+            barber: "Barber",
+            payment: "Payment",
+            address: "Address",
+            notes: "Notes"
+          },
+          placeholders: {
+            name: "Your name",
+            phone: "+971...",
+            address: "Required for home service",
+            notes: "Parking, preferred style, allergies, arrival instructions..."
+          },
+          options: {
+            salon: "Salon",
+            home: "Home",
+            anyBarber: "Any master barber",
+            cash: "Cash",
+            card: "Card",
+            stripe: "Stripe",
+            membership: "Membership"
+          },
+          submit: "Confirm booking",
+          submitting: "Confirming..."
+        };
+
   const form = useForm<BookingInput>({
     resolver: zodResolver(bookingSchema) as Resolver<BookingInput>,
     defaultValues: {
@@ -36,58 +103,58 @@ export function BookingForm() {
   return (
     <Card className="mx-auto max-w-4xl">
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-5 md:grid-cols-2">
-        <Field label="Full name" error={form.formState.errors.customerName?.message}>
-          <Input {...form.register("customerName")} placeholder="Your name" />
+        <Field label={copy.labels.name} error={form.formState.errors.customerName?.message}>
+          <Input {...form.register("customerName")} placeholder={copy.placeholders.name} />
         </Field>
-        <Field label="Email" error={form.formState.errors.email?.message}>
+        <Field label={copy.labels.email} error={form.formState.errors.email?.message}>
           <Input {...form.register("email")} type="email" placeholder="name@example.com" />
         </Field>
-        <Field label="Phone" error={form.formState.errors.phone?.message}>
-          <Input {...form.register("phone")} placeholder="+971..." />
+        <Field label={copy.labels.phone} error={form.formState.errors.phone?.message}>
+          <Input {...form.register("phone")} placeholder={copy.placeholders.phone} />
         </Field>
-        <Field label="Date" error={form.formState.errors.date?.message}>
+        <Field label={copy.labels.date} error={form.formState.errors.date?.message}>
           <Input {...form.register("date")} type="date" />
         </Field>
-        <Field label="Time" error={form.formState.errors.time?.message}>
+        <Field label={copy.labels.time} error={form.formState.errors.time?.message}>
           <Input {...form.register("time")} type="time" />
         </Field>
-        <Field label="Appointment type">
+        <Field label={copy.labels.type}>
           <select {...form.register("appointmentType")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
-            <option value="SALON">Salon</option>
-            <option value="HOME">Home</option>
+            <option value="SALON">{copy.options.salon}</option>
+            <option value="HOME">{copy.options.home}</option>
           </select>
         </Field>
-        <Field label="Service">
+        <Field label={copy.labels.service}>
           <select {...form.register("serviceIds.0")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
             {services.map((service) => <option key={service.name} value={service.name}>{service.name}</option>)}
           </select>
         </Field>
-        <Field label="Barber">
+        <Field label={copy.labels.barber}>
           <select {...form.register("barberId")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
-            <option value="">Any master barber</option>
+            <option value="">{copy.options.anyBarber}</option>
             {barbers.map((barber) => <option key={barber.name} value={barber.name}>{barber.name}</option>)}
           </select>
         </Field>
-        <Field label="Payment">
+        <Field label={copy.labels.payment}>
           <select {...form.register("paymentMethod")} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
-            <option value="CASH">Cash</option>
-            <option value="CARD">Card</option>
-            <option value="STRIPE">Stripe</option>
-            <option value="MEMBERSHIP">Membership</option>
+            <option value="CASH">{copy.options.cash}</option>
+            <option value="CARD">{copy.options.card}</option>
+            <option value="STRIPE">{copy.options.stripe}</option>
+            <option value="MEMBERSHIP">{copy.options.membership}</option>
           </select>
         </Field>
-        <Field label="Address">
-          <Input {...form.register("address")} placeholder="Required for home service" />
+        <Field label={copy.labels.address}>
+          <Input {...form.register("address")} placeholder={copy.placeholders.address} />
         </Field>
         <div className="md:col-span-2">
-          <Field label="Notes">
-            <Textarea {...form.register("notes")} placeholder="Parking, preferred style, allergies, arrival instructions..." />
+          <Field label={copy.labels.notes}>
+            <Textarea {...form.register("notes")} placeholder={copy.placeholders.notes} />
           </Field>
         </div>
         <div className="md:col-span-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
             <CalendarCheck className="h-5 w-5" />
-            {form.formState.isSubmitting ? "Confirming..." : "Confirm booking"}
+            {form.formState.isSubmitting ? copy.submitting : copy.submit}
           </Button>
         </div>
       </form>

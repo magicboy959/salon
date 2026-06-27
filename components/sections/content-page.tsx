@@ -22,13 +22,34 @@ export function ContentPage({
   title,
   subtitle,
   items,
-  image
+  image,
+  locale = "en"
 }: {
   title: string;
   subtitle: string;
   items: ContentItem[];
   image?: string;
+  locale?: string;
 }) {
+  const copy =
+    locale === "ar"
+      ? {
+          map: "افتح الموقع على الخريطة",
+          booking: "احجز مباشرة عبر واتساب للحصول على أسرع تأكيد.",
+          fallback: "تواصل مع الصالون لمعرفة التفاصيل والتوفر.",
+          minutes: "دقيقة",
+          whatsapp: "احجز عبر واتساب",
+          message: "أرغب في حجز"
+        }
+      : {
+          map: "Open location map",
+          booking: "Book directly on WhatsApp for the fastest confirmation.",
+          fallback: "Contact the salon for details and availability.",
+          minutes: "mins",
+          whatsapp: "Book on WhatsApp",
+          message: "I want to book"
+        };
+
   return (
     <>
       <section className="relative overflow-hidden border-b border-gold/15 py-24">
@@ -47,14 +68,14 @@ export function ContentPage({
             <CardTitle>{siteConfig.address}</CardTitle>
             <CardContent className="mt-3">
               <a href={siteConfig.mapUrl} target="_blank" rel="noreferrer" className="text-gold hover:text-[#8c6818]">
-                Open location map
+                {copy.map}
               </a>
             </CardContent>
           </Card>
           <Card>
             <MessageCircle className="mb-4 h-6 w-6 text-gold" />
             <CardTitle>{siteConfig.phone}</CardTitle>
-            <CardContent className="mt-3">Book directly on WhatsApp for the fastest confirmation.</CardContent>
+            <CardContent className="mt-3">{copy.booking}</CardContent>
           </Card>
         </div>
         <div className="container-shell grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -66,7 +87,7 @@ export function ContentPage({
               {typeof item === "string" ? (
                 <>
                   <CardTitle>{item}</CardTitle>
-                  <CardContent className="mt-3">Contact the salon for details and availability.</CardContent>
+                  <CardContent className="mt-3">{copy.fallback}</CardContent>
                 </>
               ) : (
                 <>
@@ -80,17 +101,17 @@ export function ContentPage({
                       <Badge>{item.category}</Badge>
                       <span className="inline-flex items-center gap-1 text-sm text-muted">
                         <Clock className="h-4 w-4" />
-                        {item.duration} mins
+                        {item.duration} {copy.minutes}
                       </span>
                     </div>
                     <CardTitle>{item.name}</CardTitle>
                     <CardContent className="mt-3 flex flex-1 flex-col">
                       <p className="leading-6">{item.detail}</p>
                       <p className="mt-5 text-2xl font-bold text-gold">{item.priceLabel ?? `AED ${item.price}`}</p>
-                      <Button asChild className="mt-5 w-full">
-                        <a href={whatsappBookingUrl(`I want to book ${item.name}.`)} target="_blank" rel="noreferrer">
+                    <Button asChild className="mt-5 w-full">
+                        <a href={whatsappBookingUrl(`${copy.message} ${item.name}.`)} target="_blank" rel="noreferrer">
                           <MessageCircle className="h-4 w-4" />
-                          Book on WhatsApp
+                          {copy.whatsapp}
                         </a>
                       </Button>
                     </CardContent>

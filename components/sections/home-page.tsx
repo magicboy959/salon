@@ -24,6 +24,19 @@ import { GalleryGrid } from "@/components/sections/gallery-grid";
 
 export async function HomePage({ locale }: { locale: string }) {
   const t = await getTranslations("home");
+  const localCopy =
+    locale === "ar"
+      ? {
+          month: "شهريا",
+          homeServiceDescription: "العنوان، الموقع، خرائط جوجل، التاريخ، الوقت، الحلاق، الملاحظات، الدفع، حالة الوصول، التتبع، والتنبيهات.",
+          bookHomeService: "احجز خدمة منزلية"
+        }
+      : {
+          month: "month",
+          homeServiceDescription: "Address, GPS, Google Maps, date, time, barber, notes, payment, arrival status, tracking, and notifications.",
+          bookHomeService: "Book home service"
+        };
+
   return (
     <>
       <section className="relative min-h-[calc(100vh-80px)] overflow-hidden">
@@ -135,7 +148,7 @@ export async function HomePage({ locale }: { locale: string }) {
             <Card key={plan.name}>
               <CardHeader>
                 <Badge>{plan.name}</Badge>
-                <CardTitle>{formatCurrency(plan.price, locale)} / month</CardTitle>
+                <CardTitle>{formatCurrency(plan.price, locale)} / {localCopy.month}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
@@ -163,10 +176,10 @@ export async function HomePage({ locale }: { locale: string }) {
         <div className="container-shell flex flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
             <h2 className="text-3xl font-bold">{t("homeService")}</h2>
-            <p className="mt-2 max-w-2xl">Address, GPS, Google Maps, date, time, barber, notes, payment, arrival status, tracking, and notifications.</p>
+            <p className="mt-2 max-w-2xl">{localCopy.homeServiceDescription}</p>
           </div>
           <Button asChild variant="dark">
-            <Link href={`/${locale}/home-services`}>Book home service</Link>
+            <Link href={`/${locale}/home-services`}>{localCopy.bookHomeService}</Link>
           </Button>
         </div>
       </section>
