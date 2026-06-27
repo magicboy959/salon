@@ -19,7 +19,8 @@ export const footerNav = [
   { href: "/faq", key: "faq" },
   { href: "/careers", key: "careers" },
   { href: "/privacy", key: "privacy" },
-  { href: "/terms", key: "terms" }
+  { href: "/terms", key: "terms" },
+  { href: "/refund-policy", key: "refundPolicy" }
 ] as const;
 
 export const adminModules = [

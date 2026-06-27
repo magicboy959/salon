@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 
-const pages = ["", "about", "services", "massage", "home-services", "barbers", "gallery", "offers", "membership", "pricing", "book", "reviews", "blog", "faq", "privacy", "terms", "careers", "contact"];
+const pages = ["", "about", "services", "massage", "home-services", "barbers", "gallery", "offers", "membership", "pricing", "book", "reviews", "blog", "faq", "privacy", "terms", "refund-policy", "careers", "contact"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return ["en", "ar"].flatMap((locale) =>
