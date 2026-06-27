@@ -1,607 +1,545 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
+-- CreateTable
+CREATE TABLE `User` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NULL,
+    `email` VARCHAR(191) NULL,
+    `emailVerified` DATETIME(3) NULL,
+    `image` VARCHAR(191) NULL,
+    `passwordHash` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `twoFactorOn` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
--- CreateEnum
-CREATE TYPE "RoleName" AS ENUM ('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'BARBER', 'CUSTOMER');
-
--- CreateEnum
-CREATE TYPE "AppointmentType" AS ENUM ('SALON', 'HOME');
-
--- CreateEnum
-CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'RESCHEDULED');
-
--- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('CASH', 'CARD', 'STRIPE', 'MEMBERSHIP');
-
--- CreateEnum
-CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PAID', 'FAILED', 'REFUNDED');
+    UNIQUE INDEX `User_email_key`(`email`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
-    "name" TEXT,
-    "email" TEXT,
-    "emailVerified" TIMESTAMP(3),
-    "image" TEXT,
-    "passwordHash" TEXT,
-    "phone" TEXT,
-    "twoFactorOn" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+CREATE TABLE `Account` (
+    `userId` VARCHAR(191) NOT NULL,
+    `type` VARCHAR(191) NOT NULL,
+    `provider` VARCHAR(191) NOT NULL,
+    `providerAccountId` VARCHAR(191) NOT NULL,
+    `refresh_token` VARCHAR(191) NULL,
+    `access_token` VARCHAR(191) NULL,
+    `expires_at` INTEGER NULL,
+    `token_type` VARCHAR(191) NULL,
+    `scope` VARCHAR(191) NULL,
+    `id_token` VARCHAR(191) NULL,
+    `session_state` VARCHAR(191) NULL,
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Account" (
-    "userId" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "provider" TEXT NOT NULL,
-    "providerAccountId" TEXT NOT NULL,
-    "refresh_token" TEXT,
-    "access_token" TEXT,
-    "expires_at" INTEGER,
-    "token_type" TEXT,
-    "scope" TEXT,
-    "id_token" TEXT,
-    "session_state" TEXT,
-
-    CONSTRAINT "Account_pkey" PRIMARY KEY ("provider","providerAccountId")
-);
+    PRIMARY KEY (`provider`, `providerAccountId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Session" (
-    "sessionToken" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL
-);
+CREATE TABLE `Session` (
+    `sessionToken` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `expires` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `Session_sessionToken_key`(`sessionToken`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "VerificationToken" (
-    "identifier" TEXT NOT NULL,
-    "token" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL,
+CREATE TABLE `VerificationToken` (
+    `identifier` VARCHAR(191) NOT NULL,
+    `token` VARCHAR(191) NOT NULL,
+    `expires` DATETIME(3) NOT NULL,
 
-    CONSTRAINT "VerificationToken_pkey" PRIMARY KEY ("identifier","token")
-);
-
--- CreateTable
-CREATE TABLE "Role" (
-    "id" TEXT NOT NULL,
-    "name" "RoleName" NOT NULL,
-
-    CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`identifier`, `token`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Permission" (
-    "id" TEXT NOT NULL,
-    "key" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+CREATE TABLE `Role` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` ENUM('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'BARBER', 'CUSTOMER') NOT NULL,
 
-    CONSTRAINT "Permission_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "UserRole" (
-    "userId" TEXT NOT NULL,
-    "roleId" TEXT NOT NULL,
-
-    CONSTRAINT "UserRole_pkey" PRIMARY KEY ("userId","roleId")
-);
+    UNIQUE INDEX `Role_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "RolePermission" (
-    "roleId" TEXT NOT NULL,
-    "permissionId" TEXT NOT NULL,
+CREATE TABLE `Permission` (
+    `id` VARCHAR(191) NOT NULL,
+    `key` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
 
-    CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("roleId","permissionId")
-);
-
--- CreateTable
-CREATE TABLE "Customer" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "rewardPoints" INTEGER NOT NULL DEFAULT 0,
-
-    CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Permission_key_key`(`key`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Employee" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "branchId" TEXT,
-    "title" TEXT NOT NULL,
-    "commissionRate" DECIMAL(65,30) NOT NULL DEFAULT 0.20,
-    "isBarber" BOOLEAN NOT NULL DEFAULT false,
-    "specialties" TEXT[],
+CREATE TABLE `UserRole` (
+    `userId` VARCHAR(191) NOT NULL,
+    `roleId` VARCHAR(191) NOT NULL,
 
-    CONSTRAINT "Employee_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`userId`, `roleId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "BarberProfile" (
-    "id" TEXT NOT NULL,
-    "employeeId" TEXT NOT NULL,
-    "bio" TEXT NOT NULL,
-    "rating" DECIMAL(65,30) NOT NULL DEFAULT 5.0,
-    "imageUrl" TEXT,
+CREATE TABLE `RolePermission` (
+    `roleId` VARCHAR(191) NOT NULL,
+    `permissionId` VARCHAR(191) NOT NULL,
 
-    CONSTRAINT "BarberProfile_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`roleId`, `permissionId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Branch" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "latitude" DECIMAL(65,30),
-    "longitude" DECIMAL(65,30),
-    "phone" TEXT NOT NULL,
+CREATE TABLE `Customer` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `rewardPoints` INTEGER NOT NULL DEFAULT 0,
 
-    CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Customer_userId_key`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Category" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+CREATE TABLE `Employee` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `branchId` VARCHAR(191) NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `commissionRate` DECIMAL(65, 30) NOT NULL DEFAULT 0.20,
+    `isBarber` BOOLEAN NOT NULL DEFAULT false,
+    `specialties` JSON NOT NULL,
 
-    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Service" (
-    "id" TEXT NOT NULL,
-    "categoryId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "duration" INTEGER NOT NULL,
-    "price" DECIMAL(65,30) NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-
-    CONSTRAINT "Service_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Employee_userId_key`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Product" (
-    "id" TEXT NOT NULL,
-    "categoryId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "sku" TEXT NOT NULL,
-    "price" DECIMAL(65,30) NOT NULL,
+CREATE TABLE `BarberProfile` (
+    `id` VARCHAR(191) NOT NULL,
+    `employeeId` VARCHAR(191) NOT NULL,
+    `bio` VARCHAR(191) NOT NULL,
+    `rating` DECIMAL(65, 30) NOT NULL DEFAULT 5.0,
+    `imageUrl` VARCHAR(191) NULL,
 
-    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "InventoryItem" (
-    "id" TEXT NOT NULL,
-    "branchId" TEXT NOT NULL,
-    "productId" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "threshold" INTEGER NOT NULL DEFAULT 5,
-
-    CONSTRAINT "InventoryItem_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `BarberProfile_employeeId_key`(`employeeId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Address" (
-    "id" TEXT NOT NULL,
-    "customerId" TEXT NOT NULL,
-    "label" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "latitude" DECIMAL(65,30),
-    "longitude" DECIMAL(65,30),
+CREATE TABLE `Branch` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `address` VARCHAR(191) NOT NULL,
+    `latitude` DECIMAL(65, 30) NULL,
+    `longitude` DECIMAL(65, 30) NULL,
+    `phone` VARCHAR(191) NOT NULL,
 
-    CONSTRAINT "Address_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Booking" (
-    "id" TEXT NOT NULL,
-    "customerId" TEXT,
-    "branchId" TEXT,
-    "barberId" TEXT,
-    "customerName" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "appointmentType" "AppointmentType" NOT NULL,
-    "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
-    "arrivalStatus" TEXT,
-    "date" TIMESTAMP(3) NOT NULL,
-    "address" TEXT,
-    "latitude" DECIMAL(65,30),
-    "longitude" DECIMAL(65,30),
-    "notes" TEXT,
-    "couponCode" TEXT,
-    "paymentMethod" "PaymentMethod" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Booking_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "BookingItem" (
-    "id" TEXT NOT NULL,
-    "bookingId" TEXT NOT NULL,
-    "serviceId" TEXT,
-    "serviceName" TEXT NOT NULL,
-    "price" DECIMAL(65,30) NOT NULL,
-    "duration" INTEGER NOT NULL,
+CREATE TABLE `Category` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
 
-    CONSTRAINT "BookingItem_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Category_slug_key`(`slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Payment" (
-    "id" TEXT NOT NULL,
-    "bookingId" TEXT NOT NULL,
-    "provider" TEXT NOT NULL,
-    "providerRef" TEXT,
-    "amount" DECIMAL(65,30) NOT NULL,
-    "taxAmount" DECIMAL(65,30) NOT NULL DEFAULT 0,
-    "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE `Service` (
+    `id` VARCHAR(191) NOT NULL,
+    `categoryId` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `duration` INTEGER NOT NULL,
+    `price` DECIMAL(65, 30) NOT NULL,
+    `active` BOOLEAN NOT NULL DEFAULT true,
 
-    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Invoice" (
-    "id" TEXT NOT NULL,
-    "bookingId" TEXT NOT NULL,
-    "customerId" TEXT,
-    "number" TEXT NOT NULL,
-    "subtotal" DECIMAL(65,30) NOT NULL,
-    "tax" DECIMAL(65,30) NOT NULL,
-    "total" DECIMAL(65,30) NOT NULL,
-    "pdfUrl" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Invoice_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Service_slug_key`(`slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Coupon" (
-    "id" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "discountPct" INTEGER NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-    "expiresAt" TIMESTAMP(3),
+CREATE TABLE `Product` (
+    `id` VARCHAR(191) NOT NULL,
+    `categoryId` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `sku` VARCHAR(191) NOT NULL,
+    `price` DECIMAL(65, 30) NOT NULL,
 
-    CONSTRAINT "Coupon_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GiftCard" (
-    "id" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "balance" DECIMAL(65,30) NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "GiftCard_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Product_sku_key`(`sku`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "MembershipPlan" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "monthlyPrice" DECIMAL(65,30) NOT NULL,
-    "features" TEXT[],
+CREATE TABLE `InventoryItem` (
+    `id` VARCHAR(191) NOT NULL,
+    `branchId` VARCHAR(191) NOT NULL,
+    `productId` VARCHAR(191) NOT NULL,
+    `quantity` INTEGER NOT NULL,
+    `threshold` INTEGER NOT NULL DEFAULT 5,
 
-    CONSTRAINT "MembershipPlan_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MembershipSubscription" (
-    "id" TEXT NOT NULL,
-    "customerId" TEXT NOT NULL,
-    "planId" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
-    "renewsAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MembershipSubscription_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `InventoryItem_branchId_productId_key`(`branchId`, `productId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "Review" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT,
-    "bookingId" TEXT,
-    "rating" INTEGER NOT NULL,
-    "comment" TEXT NOT NULL,
-    "approved" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE `Address` (
+    `id` VARCHAR(191) NOT NULL,
+    `customerId` VARCHAR(191) NOT NULL,
+    `label` VARCHAR(191) NOT NULL,
+    `address` VARCHAR(191) NOT NULL,
+    `latitude` DECIMAL(65, 30) NULL,
+    `longitude` DECIMAL(65, 30) NULL,
 
-    CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GalleryItem" (
-    "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "imageUrl" TEXT NOT NULL,
-    "alt" TEXT NOT NULL,
-    "category" TEXT NOT NULL,
-    "published" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "GalleryItem_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "BlogPost" (
-    "id" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "titleEn" TEXT NOT NULL,
-    "titleAr" TEXT NOT NULL,
-    "excerptEn" TEXT NOT NULL,
-    "excerptAr" TEXT NOT NULL,
-    "bodyEn" TEXT NOT NULL,
-    "bodyAr" TEXT NOT NULL,
-    "published" BOOLEAN NOT NULL DEFAULT false,
-    "publishedAt" TIMESTAMP(3),
+CREATE TABLE `Booking` (
+    `id` VARCHAR(191) NOT NULL,
+    `customerId` VARCHAR(191) NULL,
+    `branchId` VARCHAR(191) NULL,
+    `barberId` VARCHAR(191) NULL,
+    `customerName` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `phone` VARCHAR(191) NOT NULL,
+    `appointmentType` ENUM('SALON', 'HOME') NOT NULL,
+    `status` ENUM('PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'RESCHEDULED') NOT NULL DEFAULT 'PENDING',
+    `arrivalStatus` VARCHAR(191) NULL,
+    `date` DATETIME(3) NOT NULL,
+    `address` VARCHAR(191) NULL,
+    `latitude` DECIMAL(65, 30) NULL,
+    `longitude` DECIMAL(65, 30) NULL,
+    `notes` VARCHAR(191) NULL,
+    `couponCode` VARCHAR(191) NULL,
+    `paymentMethod` ENUM('CASH', 'CARD', 'STRIPE', 'MEMBERSHIP') NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
-    CONSTRAINT "BlogPost_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CmsBlock" (
-    "id" TEXT NOT NULL,
-    "key" TEXT NOT NULL,
-    "locale" TEXT NOT NULL,
-    "payload" JSONB NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "CmsBlock_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "SeoEntry" (
-    "id" TEXT NOT NULL,
-    "path" TEXT NOT NULL,
-    "locale" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "canonical" TEXT,
-    "ogImage" TEXT,
+CREATE TABLE `BookingItem` (
+    `id` VARCHAR(191) NOT NULL,
+    `bookingId` VARCHAR(191) NOT NULL,
+    `serviceId` VARCHAR(191) NULL,
+    `serviceName` VARCHAR(191) NOT NULL,
+    `price` DECIMAL(65, 30) NOT NULL,
+    `duration` INTEGER NOT NULL,
 
-    CONSTRAINT "SeoEntry_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Notification" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT,
-    "channel" TEXT NOT NULL,
-    "template" TEXT NOT NULL,
-    "payload" JSONB NOT NULL,
-    "readAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
-);
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "WorkingHour" (
-    "id" TEXT NOT NULL,
-    "employeeId" TEXT NOT NULL,
-    "weekday" INTEGER NOT NULL,
-    "startsAt" TEXT NOT NULL,
-    "endsAt" TEXT NOT NULL,
+CREATE TABLE `Payment` (
+    `id` VARCHAR(191) NOT NULL,
+    `bookingId` VARCHAR(191) NOT NULL,
+    `provider` VARCHAR(191) NOT NULL,
+    `providerRef` VARCHAR(191) NULL,
+    `amount` DECIMAL(65, 30) NOT NULL,
+    `taxAmount` DECIMAL(65, 30) NOT NULL DEFAULT 0,
+    `status` ENUM('PENDING', 'PAID', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    CONSTRAINT "WorkingHour_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "LeaveRequest" (
-    "id" TEXT NOT NULL,
-    "employeeId" TEXT NOT NULL,
-    "startsAt" TIMESTAMP(3) NOT NULL,
-    "endsAt" TIMESTAMP(3) NOT NULL,
-    "reason" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'PENDING',
-
-    CONSTRAINT "LeaveRequest_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Payment_bookingId_key`(`bookingId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "EmailTemplate" (
-    "id" TEXT NOT NULL,
-    "key" TEXT NOT NULL,
-    "subject" TEXT NOT NULL,
-    "html" TEXT NOT NULL,
+CREATE TABLE `Invoice` (
+    `id` VARCHAR(191) NOT NULL,
+    `bookingId` VARCHAR(191) NOT NULL,
+    `customerId` VARCHAR(191) NULL,
+    `number` VARCHAR(191) NOT NULL,
+    `subtotal` DECIMAL(65, 30) NOT NULL,
+    `tax` DECIMAL(65, 30) NOT NULL,
+    `total` DECIMAL(65, 30) NOT NULL,
+    `pdfUrl` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    CONSTRAINT "EmailTemplate_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "WhatsAppTemplate" (
-    "id" TEXT NOT NULL,
-    "key" TEXT NOT NULL,
-    "message" TEXT NOT NULL,
-
-    CONSTRAINT "WhatsAppTemplate_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Invoice_bookingId_key`(`bookingId`),
+    UNIQUE INDEX `Invoice_number_key`(`number`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE "AuditLog" (
-    "id" TEXT NOT NULL,
-    "actorId" TEXT,
-    "action" TEXT NOT NULL,
-    "entity" TEXT NOT NULL,
-    "entityId" TEXT,
-    "metadata" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE `Coupon` (
+    `id` VARCHAR(191) NOT NULL,
+    `code` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `discountPct` INTEGER NOT NULL,
+    `active` BOOLEAN NOT NULL DEFAULT true,
+    `expiresAt` DATETIME(3) NULL,
 
-    CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
-);
+    UNIQUE INDEX `Coupon_code_key`(`code`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+-- CreateTable
+CREATE TABLE `GiftCard` (
+    `id` VARCHAR(191) NOT NULL,
+    `code` VARCHAR(191) NOT NULL,
+    `balance` DECIMAL(65, 30) NOT NULL,
+    `active` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
--- CreateIndex
-CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
+    UNIQUE INDEX `GiftCard_code_key`(`code`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+-- CreateTable
+CREATE TABLE `MembershipPlan` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `monthlyPrice` DECIMAL(65, 30) NOT NULL,
+    `features` JSON NOT NULL,
 
--- CreateIndex
-CREATE UNIQUE INDEX "Permission_key_key" ON "Permission"("key");
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "Customer_userId_key" ON "Customer"("userId");
+-- CreateTable
+CREATE TABLE `MembershipSubscription` (
+    `id` VARCHAR(191) NOT NULL,
+    `customerId` VARCHAR(191) NOT NULL,
+    `planId` VARCHAR(191) NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'ACTIVE',
+    `renewsAt` DATETIME(3) NOT NULL,
 
--- CreateIndex
-CREATE UNIQUE INDEX "Employee_userId_key" ON "Employee"("userId");
+    UNIQUE INDEX `MembershipSubscription_customerId_key`(`customerId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "BarberProfile_employeeId_key" ON "BarberProfile"("employeeId");
+-- CreateTable
+CREATE TABLE `Review` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NULL,
+    `bookingId` VARCHAR(191) NULL,
+    `rating` INTEGER NOT NULL,
+    `comment` VARCHAR(191) NOT NULL,
+    `approved` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
--- CreateIndex
-CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
+    UNIQUE INDEX `Review_bookingId_key`(`bookingId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "Service_slug_key" ON "Service"("slug");
+-- CreateTable
+CREATE TABLE `GalleryItem` (
+    `id` VARCHAR(191) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `imageUrl` VARCHAR(191) NOT NULL,
+    `alt` VARCHAR(191) NOT NULL,
+    `category` VARCHAR(191) NOT NULL,
+    `published` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
--- CreateIndex
-CREATE UNIQUE INDEX "Product_sku_key" ON "Product"("sku");
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "InventoryItem_branchId_productId_key" ON "InventoryItem"("branchId", "productId");
+-- CreateTable
+CREATE TABLE `BlogPost` (
+    `id` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `titleEn` VARCHAR(191) NOT NULL,
+    `titleAr` VARCHAR(191) NOT NULL,
+    `excerptEn` VARCHAR(191) NOT NULL,
+    `excerptAr` VARCHAR(191) NOT NULL,
+    `bodyEn` VARCHAR(191) NOT NULL,
+    `bodyAr` VARCHAR(191) NOT NULL,
+    `published` BOOLEAN NOT NULL DEFAULT false,
+    `publishedAt` DATETIME(3) NULL,
 
--- CreateIndex
-CREATE UNIQUE INDEX "Payment_bookingId_key" ON "Payment"("bookingId");
+    UNIQUE INDEX `BlogPost_slug_key`(`slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "Invoice_bookingId_key" ON "Invoice"("bookingId");
+-- CreateTable
+CREATE TABLE `CmsBlock` (
+    `id` VARCHAR(191) NOT NULL,
+    `key` VARCHAR(191) NOT NULL,
+    `locale` VARCHAR(191) NOT NULL,
+    `payload` JSON NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL,
 
--- CreateIndex
-CREATE UNIQUE INDEX "Invoice_number_key" ON "Invoice"("number");
+    UNIQUE INDEX `CmsBlock_key_key`(`key`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "Coupon_code_key" ON "Coupon"("code");
+-- CreateTable
+CREATE TABLE `SeoEntry` (
+    `id` VARCHAR(191) NOT NULL,
+    `path` VARCHAR(191) NOT NULL,
+    `locale` VARCHAR(191) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `canonical` VARCHAR(191) NULL,
+    `ogImage` VARCHAR(191) NULL,
 
--- CreateIndex
-CREATE UNIQUE INDEX "GiftCard_code_key" ON "GiftCard"("code");
+    UNIQUE INDEX `SeoEntry_path_locale_key`(`path`, `locale`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "MembershipSubscription_customerId_key" ON "MembershipSubscription"("customerId");
+-- CreateTable
+CREATE TABLE `Notification` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NULL,
+    `channel` VARCHAR(191) NOT NULL,
+    `template` VARCHAR(191) NOT NULL,
+    `payload` JSON NOT NULL,
+    `readAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
--- CreateIndex
-CREATE UNIQUE INDEX "Review_bookingId_key" ON "Review"("bookingId");
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "BlogPost_slug_key" ON "BlogPost"("slug");
+-- CreateTable
+CREATE TABLE `WorkingHour` (
+    `id` VARCHAR(191) NOT NULL,
+    `employeeId` VARCHAR(191) NOT NULL,
+    `weekday` INTEGER NOT NULL,
+    `startsAt` VARCHAR(191) NOT NULL,
+    `endsAt` VARCHAR(191) NOT NULL,
 
--- CreateIndex
-CREATE UNIQUE INDEX "CmsBlock_key_key" ON "CmsBlock"("key");
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "SeoEntry_path_locale_key" ON "SeoEntry"("path", "locale");
+-- CreateTable
+CREATE TABLE `LeaveRequest` (
+    `id` VARCHAR(191) NOT NULL,
+    `employeeId` VARCHAR(191) NOT NULL,
+    `startsAt` DATETIME(3) NOT NULL,
+    `endsAt` DATETIME(3) NOT NULL,
+    `reason` VARCHAR(191) NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'PENDING',
 
--- CreateIndex
-CREATE UNIQUE INDEX "EmailTemplate_key_key" ON "EmailTemplate"("key");
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX "WhatsAppTemplate_key_key" ON "WhatsAppTemplate"("key");
+-- CreateTable
+CREATE TABLE `EmailTemplate` (
+    `id` VARCHAR(191) NOT NULL,
+    `key` VARCHAR(191) NOT NULL,
+    `subject` VARCHAR(191) NOT NULL,
+    `html` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `EmailTemplate_key_key`(`key`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `WhatsAppTemplate` (
+    `id` VARCHAR(191) NOT NULL,
+    `key` VARCHAR(191) NOT NULL,
+    `message` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `WhatsAppTemplate_key_key`(`key`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `AuditLog` (
+    `id` VARCHAR(191) NOT NULL,
+    `actorId` VARCHAR(191) NULL,
+    `action` VARCHAR(191) NOT NULL,
+    `entity` VARCHAR(191) NOT NULL,
+    `entityId` VARCHAR(191) NULL,
+    `metadata` JSON NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Account` ADD CONSTRAINT `Account_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Session` ADD CONSTRAINT `Session_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `UserRole` ADD CONSTRAINT `UserRole_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `UserRole` ADD CONSTRAINT `UserRole_roleId_fkey` FOREIGN KEY (`roleId`) REFERENCES `Role`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `RolePermission` ADD CONSTRAINT `RolePermission_roleId_fkey` FOREIGN KEY (`roleId`) REFERENCES `Role`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_permissionId_fkey" FOREIGN KEY ("permissionId") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `RolePermission` ADD CONSTRAINT `RolePermission_permissionId_fkey` FOREIGN KEY (`permissionId`) REFERENCES `Permission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Customer" ADD CONSTRAINT "Customer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Customer` ADD CONSTRAINT `Customer_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Employee" ADD CONSTRAINT "Employee_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Employee` ADD CONSTRAINT `Employee_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Employee" ADD CONSTRAINT "Employee_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Employee` ADD CONSTRAINT `Employee_branchId_fkey` FOREIGN KEY (`branchId`) REFERENCES `Branch`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BarberProfile" ADD CONSTRAINT "BarberProfile_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `BarberProfile` ADD CONSTRAINT `BarberProfile_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Service" ADD CONSTRAINT "Service_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Service` ADD CONSTRAINT `Service_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Product` ADD CONSTRAINT `Product_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InventoryItem" ADD CONSTRAINT "InventoryItem_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `InventoryItem` ADD CONSTRAINT `InventoryItem_branchId_fkey` FOREIGN KEY (`branchId`) REFERENCES `Branch`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InventoryItem" ADD CONSTRAINT "InventoryItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `InventoryItem` ADD CONSTRAINT `InventoryItem_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Address" ADD CONSTRAINT "Address_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Address` ADD CONSTRAINT `Address_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Booking" ADD CONSTRAINT "Booking_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Booking` ADD CONSTRAINT `Booking_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Booking" ADD CONSTRAINT "Booking_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Booking` ADD CONSTRAINT `Booking_branchId_fkey` FOREIGN KEY (`branchId`) REFERENCES `Branch`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Booking" ADD CONSTRAINT "Booking_barberId_fkey" FOREIGN KEY ("barberId") REFERENCES "Employee"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Booking` ADD CONSTRAINT `Booking_barberId_fkey` FOREIGN KEY (`barberId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BookingItem" ADD CONSTRAINT "BookingItem_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `BookingItem` ADD CONSTRAINT `BookingItem_bookingId_fkey` FOREIGN KEY (`bookingId`) REFERENCES `Booking`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BookingItem" ADD CONSTRAINT "BookingItem_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `BookingItem` ADD CONSTRAINT `BookingItem_serviceId_fkey` FOREIGN KEY (`serviceId`) REFERENCES `Service`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Payment` ADD CONSTRAINT `Payment_bookingId_fkey` FOREIGN KEY (`bookingId`) REFERENCES `Booking`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Invoice` ADD CONSTRAINT `Invoice_bookingId_fkey` FOREIGN KEY (`bookingId`) REFERENCES `Booking`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Invoice` ADD CONSTRAINT `Invoice_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MembershipSubscription" ADD CONSTRAINT "MembershipSubscription_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `MembershipSubscription` ADD CONSTRAINT `MembershipSubscription_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MembershipSubscription" ADD CONSTRAINT "MembershipSubscription_planId_fkey" FOREIGN KEY ("planId") REFERENCES "MembershipPlan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `MembershipSubscription` ADD CONSTRAINT `MembershipSubscription_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `MembershipPlan`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Review` ADD CONSTRAINT `Review_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Review" ADD CONSTRAINT "Review_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Review` ADD CONSTRAINT `Review_bookingId_fkey` FOREIGN KEY (`bookingId`) REFERENCES `Booking`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Notification` ADD CONSTRAINT `Notification_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkingHour" ADD CONSTRAINT "WorkingHour_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `WorkingHour` ADD CONSTRAINT `WorkingHour_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "LeaveRequest" ADD CONSTRAINT "LeaveRequest_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `LeaveRequest` ADD CONSTRAINT `LeaveRequest_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `AuditLog` ADD CONSTRAINT `AuditLog_actorId_fkey` FOREIGN KEY (`actorId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+

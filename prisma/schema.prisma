@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -146,7 +146,7 @@ model Employee {
   title          String
   commissionRate Decimal         @default(0.20)
   isBarber       Boolean         @default(false)
-  specialties    String[]
+  specialties    Json
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   branch         Branch?         @relation(fields: [branchId], references: [id])
   barberProfile  BarberProfile?
@@ -316,7 +316,7 @@ model MembershipPlan {
   id            String                   @id @default(cuid())
   name          String
   monthlyPrice  Decimal
-  features      String[]
+  features      Json
   subscriptions MembershipSubscription[]
 }
 
