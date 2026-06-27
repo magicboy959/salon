@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Menu, Scissors } from "lucide-react";
+import { Menu } from "lucide-react";
 import { publicNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,8 @@ export async function Navbar({ locale }: { locale: string }) {
     <header className="sticky top-0 z-50 border-b border-gold/15 bg-white/88 backdrop-blur-xl">
       <div className="container-shell flex h-20 items-center justify-between gap-6">
         <Link href={`/${locale}`} className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-md border border-gold/35 bg-gold/10">
-            <Scissors className="h-5 w-5 text-gold" />
+          <span className="relative h-12 w-12 overflow-hidden rounded-md border border-gold/35 bg-white">
+            <Image src="/logo.jpeg" alt={siteConfig.shortName} fill priority className="object-contain p-1" sizes="48px" />
           </span>
           <span className="max-w-48 text-sm font-bold uppercase tracking-[0.18em] text-foreground">
             {siteConfig.shortName}
