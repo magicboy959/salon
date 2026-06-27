@@ -33,7 +33,8 @@ export function LoginForm({ locale }: { locale: string }) {
       return;
     }
 
-    router.push(`/${locale}/admin`);
+    const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
+    router.push(callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/admin`);
     router.refresh();
   }
 

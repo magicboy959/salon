@@ -12,6 +12,17 @@ const credentialsSchema = z.object({
   password: z.string().min(8)
 });
 
+async function getRoleNames(userId: string) {
+  const rows = await query<Array<RowDataPacket & { name: string }>>(
+    `SELECT Role.name
+    FROM UserRole
+    INNER JOIN Role ON Role.id = UserRole.roleId
+    WHERE UserRole.userId = ?`,
+    [userId]
+  );
+  return rows.map((row) => row.name);
+}
+
 const providers: NextAuthConfig["providers"] = [
   Credentials({
     credentials: {
@@ -51,11 +62,15 @@ export const authConfig = {
   providers,
   callbacks: {
     async jwt({ token, user }) {
-      if (user?.id) token.sub = user.id;
+      if (user?.id) {
+        token.sub = user.id;
+        token.roles = await getRoleNames(user.id);
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.sub) session.user.id = token.sub;
+      if (session.user) session.user.roles = Array.isArray(token.roles) ? token.roles.filter((role): role is string => typeof role === "string") : [];
       return session;
     }
   },
