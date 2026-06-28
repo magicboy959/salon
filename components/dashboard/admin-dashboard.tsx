@@ -8,7 +8,9 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils";
-import { bookingStatuses, type AdminBooking, type BookingStatus } from "@/lib/admin-booking-types";
+import { bookingStatusLabels, bookingStatuses, type AdminBooking, type BookingStatus } from "@/lib/admin-booking-types";
+
+const userRoles = ["SUPER_ADMIN", "ADMIN", "MANAGER", "BARBER", "CUSTOMER"] as const;
 
 type AdminUser = {
   id: string;
@@ -30,6 +32,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
   const [userError, setUserError] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "ALL", date: "" });
+  const [userSearch, setUserSearch] = useState("");
   const [newUser, setNewUser] = useState({ name: "", email: "", phone: "", password: "", role: "ADMIN" });
   const [credit, setCredit] = useState({ userId: "", amount: "", note: "" });
 
@@ -100,6 +103,25 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
     }
   }
 
+  async function changeUserRole(userId: string, role: string) {
+    setSavingId(userId);
+    setUserError(null);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "role", userId, role })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Could not update user role");
+      setUsers((current) => current.map((user) => (user.id === userId ? { ...user, roles: role } : user)));
+    } catch (roleError) {
+      setUserError(roleError instanceof Error ? roleError.message : "Could not update user role");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   async function changeStatus(id: string, status: BookingStatus) {
     setSavingId(id);
     setError(null);
@@ -130,9 +152,17 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
       total: bookings.length,
       today: bookings.filter((booking) => booking.date.slice(0, 10) === today).length,
       pending: bookings.filter((booking) => booking.status === "PENDING").length,
+      active: bookings.filter((booking) => ["PENDING", "CONFIRMED", "IN_PROGRESS", "RESCHEDULED"].includes(booking.status)).length,
       revenue: bookings.reduce((sum, booking) => sum + booking.total, 0)
     };
   }, [bookings]);
+
+  const userStats = useMemo(() => ({
+    total: users.length,
+    customers: users.filter((user) => user.roles.includes("CUSTOMER")).length,
+    staff: users.filter((user) => ["SUPER_ADMIN", "ADMIN", "MANAGER", "BARBER"].some((role) => user.roles.includes(role))).length,
+    credit: users.reduce((sum, user) => sum + user.creditBalance, 0)
+  }), [users]);
 
   const filteredBookings = useMemo(() => {
     const search = filters.search.trim().toLowerCase();
@@ -143,6 +173,12 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
       return matchesSearch && matchesStatus && matchesDate;
     });
   }, [bookings, filters]);
+
+  const filteredUsers = useMemo(() => {
+    const search = userSearch.trim().toLowerCase();
+    if (!search) return users;
+    return users.filter((user) => [user.name ?? "", user.email ?? "", user.phone ?? "", user.roles].some((value) => value.toLowerCase().includes(search)));
+  }, [users, userSearch]);
 
   return (
     <section className="py-10">
@@ -178,7 +214,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
         <div className="grid gap-4 md:grid-cols-4">
           <StatCard icon={<CalendarDays className="h-5 w-5" />} label="Total bookings" value={String(stats.total)} />
           <StatCard icon={<Scissors className="h-5 w-5" />} label="Today" value={String(stats.today)} />
-          <StatCard icon={<CheckCircle2 className="h-5 w-5" />} label="Pending" value={String(stats.pending)} />
+          <StatCard icon={<CheckCircle2 className="h-5 w-5" />} label="Active workflow" value={String(stats.active)} />
           <StatCard icon={<CircleDollarSign className="h-5 w-5" />} label="Value" value={formatCurrency(stats.revenue)} />
         </div>
 
@@ -200,7 +236,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
               </div>
               <select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))} className="h-11 rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
                 <option value="ALL">All statuses</option>
-                {bookingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                {bookingStatuses.map((status) => <option key={status} value={status}>{bookingStatusLabels[status]}</option>)}
               </select>
               <Input value={filters.date} onChange={(event) => setFilters((current) => ({ ...current, date: event.target.value }))} type="date" />
               <Button type="button" variant="outline" onClick={() => setFilters({ search: "", status: "ALL", date: "" })}>
@@ -250,7 +286,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
                             disabled={savingId === booking.id}
                             className="h-9 rounded-md border border-gold/25 bg-white px-2 text-xs text-foreground"
                           >
-                            {bookingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                            {bookingStatuses.map((status) => <option key={status} value={status}>{bookingStatusLabels[status]}</option>)}
                           </select>
                           <a className="inline-flex h-9 items-center rounded-md border border-gold/25 px-3 text-xs font-semibold text-foreground" href={`tel:${booking.phone}`}>
                             Call
@@ -283,8 +319,8 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
           <Card className="overflow-hidden p-0">
             <div className="flex items-center justify-between border-b border-gold/15 p-5">
               <div>
-                <CardTitle>Users & Store Credit</CardTitle>
-                <CardContent className="mt-1 p-0">Admins, customers, roles, and current credit balance.</CardContent>
+                <CardTitle>User Dashboard</CardTitle>
+                <CardContent className="mt-1 p-0">Admins, staff, customers, roles, and current credit balance.</CardContent>
               </div>
               <Button type="button" variant="outline" onClick={loadUsers} disabled={usersLoading}>
                 <RefreshCw className={usersLoading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
@@ -292,6 +328,16 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
               </Button>
             </div>
             {userError ? <div className="m-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{userError}</div> : null}
+            <div className="grid gap-3 border-b border-gold/15 p-5 sm:grid-cols-4">
+              <MiniStat label="Users" value={String(userStats.total)} />
+              <MiniStat label="Customers" value={String(userStats.customers)} />
+              <MiniStat label="Staff" value={String(userStats.staff)} />
+              <MiniStat label="Credit" value={formatCurrency(userStats.credit)} />
+              <div className="relative sm:col-span-4">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                <Input value={userSearch} onChange={(event) => setUserSearch(event.target.value)} className="pl-9" placeholder="Search users by name, email, phone, or role" />
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="bg-gold/10 text-xs uppercase text-muted">
@@ -306,21 +352,30 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
                 <tbody>
                   {usersLoading ? (
                     <tr><td className="px-4 py-8 text-center text-muted" colSpan={5}>Loading users...</td></tr>
-                  ) : users.length ? (
-                    users.map((user) => (
+                  ) : filteredUsers.length ? (
+                    filteredUsers.map((user) => (
                       <tr key={user.id} className="border-t border-gold/10">
                         <td className="px-4 py-4">
                           <p className="font-semibold text-foreground">{user.name || "-"}</p>
                           <p className="text-xs text-muted">{user.email}</p>
                         </td>
                         <td className="px-4 py-4 text-muted">{user.phone || "-"}</td>
-                        <td className="px-4 py-4 text-muted">{user.roles || "-"}</td>
+                        <td className="px-4 py-4">
+                          <select
+                            value={(user.roles.split(", ")[0] || "CUSTOMER")}
+                            onChange={(event) => changeUserRole(user.id, event.target.value)}
+                            disabled={savingId === user.id}
+                            className="h-9 rounded-md border border-gold/25 bg-white px-2 text-xs text-foreground"
+                          >
+                            {userRoles.map((role) => <option key={role} value={role}>{role}</option>)}
+                          </select>
+                        </td>
                         <td className="px-4 py-4 font-semibold text-foreground">{formatCurrency(user.creditBalance)}</td>
                         <td className="px-4 py-4 text-muted">{new Date(user.createdAt).toLocaleDateString("en-AE")}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr><td className="px-4 py-8 text-center text-muted" colSpan={5}>No users found.</td></tr>
+                    <tr><td className="px-4 py-8 text-center text-muted" colSpan={5}>No users match the current search.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -340,10 +395,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
                 <Field label="Password"><Input value={newUser.password} onChange={(event) => setNewUser((current) => ({ ...current, password: event.target.value }))} type="password" minLength={8} required /></Field>
                 <Field label="Role">
                   <select value={newUser.role} onChange={(event) => setNewUser((current) => ({ ...current, role: event.target.value }))} className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground">
-                    <option value="ADMIN">Admin</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="BARBER">Barber</option>
-                    <option value="CUSTOMER">Customer</option>
+                    {userRoles.map((role) => <option key={role} value={role}>{role}</option>)}
                   </select>
                 </Field>
                 <Button type="submit"><UserPlus className="h-4 w-4" />Create</Button>
@@ -384,13 +436,24 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-gold/15 bg-gold/5 p-3">
+      <p className="text-xs font-semibold uppercase text-muted">{label}</p>
+      <p className="mt-1 text-lg font-bold text-foreground">{value}</p>
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: BookingStatus }) {
   const cancelled = status === "CANCELLED";
   const completed = status === "COMPLETED";
+  const noShow = status === "NO_SHOW";
+  const active = status === "CONFIRMED" || status === "IN_PROGRESS";
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cancelled ? "bg-red-50 text-red-700" : completed ? "bg-green-50 text-green-700" : "bg-gold/15 text-gold"}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cancelled || noShow ? "bg-red-50 text-red-700" : completed ? "bg-green-50 text-green-700" : active ? "bg-blue-50 text-blue-700" : "bg-gold/15 text-gold"}`}>
       {cancelled ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-      {status}
+      {bookingStatusLabels[status]}
     </span>
   );
 }
@@ -439,7 +502,7 @@ function BookingDetailsModal({
                 disabled={saving}
                 className="h-10 rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
               >
-                {bookingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                {bookingStatuses.map((status) => <option key={status} value={status}>{bookingStatusLabels[status]}</option>)}
               </select>
             </div>
             <div className="flex flex-wrap gap-2">

@@ -3,7 +3,7 @@ export const siteConfig = {
   shortName: "Alshanab Alaswad",
   description:
     "Luxury men's grooming, VIP barbering, home service, memberships, and premium salon care.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.alshanabalaswadsalon.com",
   phone: "+971 50 801 2791",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "971508012791",
   email: "bookings@alshanabalaswadsalon.com",

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-auth";
-import { addStoreCredit, createUser, listAdminUsers } from "@/lib/users";
+import { addStoreCredit, createUser, listAdminUsers, updateUserRole } from "@/lib/users";
 
 const createUserSchema = z.object({
   name: z.string().min(2).max(120),
@@ -12,9 +12,16 @@ const createUserSchema = z.object({
 });
 
 const creditSchema = z.object({
+  action: z.literal("credit").optional(),
   userId: z.string().min(1),
   amount: z.coerce.number().positive().max(100000),
   note: z.string().max(191).optional()
+});
+
+const roleSchema = z.object({
+  action: z.literal("role"),
+  userId: z.string().min(1),
+  role: z.enum(["SUPER_ADMIN", "ADMIN", "MANAGER", "BARBER", "CUSTOMER"])
 });
 
 export async function GET() {
@@ -53,7 +60,22 @@ export async function PATCH(request: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const parsed = creditSchema.safeParse(await request.json());
+  const body = await request.json();
+  const roleUpdate = roleSchema.safeParse(body);
+  if (roleUpdate.success) {
+    try {
+      await updateUserRole(roleUpdate.data);
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      if (error instanceof Error && error.message === "USER_NOT_FOUND") {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      console.error("Admin user role update failed", error);
+      return NextResponse.json({ error: "Could not update user role" }, { status: 500 });
+    }
+  }
+
+  const parsed = creditSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   try {
