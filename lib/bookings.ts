@@ -29,12 +29,25 @@ async function resolveForeignId(table: "Employee" | "Branch", idOrName?: string)
   return rows[0]?.id ?? null;
 }
 
+async function resolveCustomerId(email: string) {
+  const rows = await query<IdRow[]>(
+    `SELECT Customer.id
+    FROM Customer
+    INNER JOIN User ON User.id = Customer.userId
+    WHERE User.email = ?
+    LIMIT 1`,
+    [email]
+  );
+  return rows[0]?.id ?? null;
+}
+
 export async function createStoredBooking(input: BookingInput): Promise<StoredBooking> {
   const bookingId = randomUUID();
   const appointmentDate = new Date(`${input.date}T${input.time}`);
   const status = "PENDING" as const;
   const barberId = await resolveForeignId("Employee", input.barberId);
   const branchId = await resolveForeignId("Branch", input.branchId);
+  const customerId = await resolveCustomerId(input.email);
   const items = input.serviceIds.map((serviceName) => {
     const service = services.find((item) => item.name === serviceName);
     return {
@@ -48,12 +61,13 @@ export async function createStoredBooking(input: BookingInput): Promise<StoredBo
   await transaction(async (connection) => {
     await connection.execute<ResultSetHeader>(
       `INSERT INTO Booking (
-        id, customerName, email, phone, appointmentType, status, arrivalStatus, date,
+        id, customerId, customerName, email, phone, appointmentType, status, arrivalStatus, date,
         address, latitude, longitude, notes, couponCode, paymentMethod, barberId, branchId,
         createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`,
       [
         bookingId,
+        customerId,
         input.customerName,
         input.email,
         input.phone,

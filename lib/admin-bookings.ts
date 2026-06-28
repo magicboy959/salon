@@ -55,7 +55,21 @@ export async function listAdminBookings() {
   }));
 }
 
-export async function updateBookingStatus(id: string, status: BookingStatus) {
+type StatusRow = RowDataPacket & { status: BookingStatus };
+
+export async function updateBookingStatus(id: string, status: BookingStatus, changedByUserId?: string) {
+  const rows = await query<StatusRow[]>("SELECT status FROM Booking WHERE id = ? LIMIT 1", [id]);
+  const previousStatus = rows[0]?.status;
+  if (!previousStatus) return 0;
+
   const result = await query<ResultSetHeader>("UPDATE Booking SET status = ?, updatedAt = NOW(3) WHERE id = ?", [status, id]);
+
+  if (result.affectedRows && previousStatus !== status) {
+    await query<ResultSetHeader>(
+      "INSERT INTO BookingStatusLog (id, bookingId, changedByUserId, oldStatus, newStatus, createdAt) VALUES (UUID(), ?, ?, ?, ?, NOW(3))",
+      [id, changedByUserId ?? null, previousStatus, status]
+    );
+  }
+
   return result.affectedRows;
 }

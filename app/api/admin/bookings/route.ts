@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   try {
-    const affectedRows = await updateBookingStatus(parsed.data.id, parsed.data.status);
+    const affectedRows = await updateBookingStatus(parsed.data.id, parsed.data.status, user.id);
     if (!affectedRows) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch (error) {
