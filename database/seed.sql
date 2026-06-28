@@ -19,7 +19,7 @@ INSERT IGNORE INTO `RolePermission` (`roleId`, `permissionId`)
 SELECT 'role-super-admin', `id` FROM `Permission`;
 
 INSERT IGNORE INTO `User` (`id`, `name`, `email`, `passwordHash`, `twoFactorOn`, `createdAt`, `updatedAt`) VALUES
-  ('admin-user', 'Alshamy Admin', 'admin@alshamyalaswad.com', '$2b$12$Z6BSBuhlRiVrXa/IzehpQ.QRYMUdV3SIwawnV4Wjs1xVzeRNelKqq', false, NOW(3), NOW(3));
+  ('admin-user', 'Alshanab Admin', 'admin@alshamyalaswad.com', '$2b$12$Z6BSBuhlRiVrXa/IzehpQ.QRYMUdV3SIwawnV4Wjs1xVzeRNelKqq', false, NOW(3), NOW(3));
 
 INSERT IGNORE INTO `UserRole` (`userId`, `roleId`) VALUES
   ('admin-user', 'role-super-admin');

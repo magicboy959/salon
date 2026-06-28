@@ -1,4 +1,4 @@
-# Alshamy Alaswad Salon for Gents
+# Alshanab Alaswad Salon
 
 Production-ready multilingual luxury salon platform built with Next.js 15, TypeScript, Tailwind CSS, MySQL, Auth.js, next-intl, React Hook Form, Zod, TanStack Query, UploadThing, SMTP email, Google Maps, WhatsApp links, and Vercel deployment defaults.
 

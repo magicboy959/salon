@@ -21,21 +21,30 @@ export function LoginForm({ locale }: { locale: string }) {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false
-    });
-    setLoading(false);
-
-    if (result?.error) {
-      setError("Invalid email or password");
-      return;
-    }
-
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    router.push(callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/admin`);
-    router.refresh();
+    const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/admin`;
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: safeCallbackUrl
+      });
+
+      if (!result?.ok || result.error) {
+        setError("Invalid email or password");
+        return;
+      }
+
+      router.replace(safeCallbackUrl);
+      router.refresh();
+    } catch (error) {
+      console.error("Login request failed", error);
+      setError("Login is unavailable right now. Check the server auth URL settings and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
