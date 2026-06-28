@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
-import { CalendarDays, CheckCircle2, CircleDollarSign, Eye, LogOut, MessageSquare, RefreshCw, Scissors, Search, UserPlus, Wallet, X, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Eye, LogOut, MessageSquare, RefreshCw, Scissors, Search, UserPlus, Wallet, X, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -133,7 +133,55 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Could not update booking");
-      setBookings((current) => current.map((booking) => (booking.id === id ? { ...booking, status } : booking)));
+      const changedAt = new Date().toISOString();
+      setBookings((current) =>
+        current.map((booking) =>
+          booking.id === id
+            ? {
+                ...booking,
+                status,
+                statusHistory:
+                  booking.status === status
+                    ? booking.statusHistory
+                    : [
+                        {
+                          id: `local-${changedAt}`,
+                          oldStatus: booking.status,
+                          newStatus: status,
+                          createdAt: changedAt,
+                          changedByName: adminUser.name ?? null,
+                          changedByEmail: adminUser.email ?? null,
+                          note: null
+                        },
+                        ...booking.statusHistory
+                      ]
+              }
+            : booking
+        )
+      );
+      setSelectedBooking((current) =>
+        current?.id === id
+          ? {
+              ...current,
+              status,
+              statusHistory:
+                current.status === status
+                  ? current.statusHistory
+                  : [
+                      {
+                        id: `local-${changedAt}`,
+                        oldStatus: current.status,
+                        newStatus: status,
+                        createdAt: changedAt,
+                        changedByName: adminUser.name ?? null,
+                        changedByEmail: adminUser.email ?? null,
+                        note: null
+                      },
+                      ...current.statusHistory
+                    ]
+            }
+          : current
+      );
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : "Could not update booking");
     } finally {
@@ -491,6 +539,29 @@ function BookingDetailsModal({
           <Detail label="Total" value={formatCurrency(booking.total)} />
           <Detail label="Address" value={booking.address || "-"} className="md:col-span-2" />
           <Detail label="Notes" value={booking.notes || "-"} className="md:col-span-2" />
+        </div>
+        <div className="border-t border-gold/15 p-5">
+          <div className="flex items-center gap-2">
+            <Clock3 className="h-4 w-4 text-gold" />
+            <h3 className="text-sm font-semibold uppercase text-muted">Status Timeline</h3>
+          </div>
+          <div className="mt-4 space-y-3">
+            {booking.statusHistory.length ? (
+              booking.statusHistory.map((event) => (
+                <div key={event.id} className="rounded-md border border-gold/15 bg-gold/5 p-3">
+                  <p className="text-sm font-semibold text-foreground">
+                    {bookingStatusLabels[event.oldStatus]} to {bookingStatusLabels[event.newStatus]}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {formatDate(event.createdAt)} by {event.changedByName || event.changedByEmail || "System"}
+                  </p>
+                  {event.note ? <p className="mt-2 text-sm text-muted">{event.note}</p> : null}
+                </div>
+              ))
+            ) : (
+              <p className="rounded-md border border-gold/15 bg-gold/5 p-3 text-sm text-muted">No status changes recorded yet.</p>
+            )}
+          </div>
         </div>
         <div className="border-t border-gold/15 p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

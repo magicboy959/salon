@@ -1,6 +1,6 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { query } from "@/lib/db";
-import type { BookingStatus } from "@/lib/admin-booking-types";
+import type { BookingStatus, BookingStatusHistory } from "@/lib/admin-booking-types";
 
 type BookingRow = RowDataPacket & {
   id: string;
@@ -15,6 +15,17 @@ type BookingRow = RowDataPacket & {
   notes: string | null;
   total: string | number | null;
   services: string | null;
+};
+
+type StatusHistoryRow = RowDataPacket & {
+  id: string;
+  bookingId: string;
+  oldStatus: BookingStatus;
+  newStatus: BookingStatus;
+  createdAt: Date | string;
+  changedByName: string | null;
+  changedByEmail: string | null;
+  note: string | null;
 };
 
 export async function listAdminBookings() {
@@ -39,6 +50,38 @@ export async function listAdminBookings() {
     LIMIT 100`
   );
 
+  const historyRows = rows.length
+    ? await query<StatusHistoryRow[]>(
+        `SELECT
+          BookingStatusLog.id,
+          BookingStatusLog.bookingId,
+          BookingStatusLog.oldStatus,
+          BookingStatusLog.newStatus,
+          BookingStatusLog.createdAt,
+          BookingStatusLog.note,
+          User.name AS changedByName,
+          User.email AS changedByEmail
+        FROM BookingStatusLog
+        LEFT JOIN User ON User.id = BookingStatusLog.changedByUserId
+        WHERE BookingStatusLog.bookingId IN (?)
+        ORDER BY BookingStatusLog.createdAt DESC`,
+        [rows.map((row) => row.id)]
+      )
+    : [];
+  const historyByBooking = historyRows.reduce<Record<string, BookingStatusHistory[]>>((acc, row) => {
+    acc[row.bookingId] ??= [];
+    acc[row.bookingId].push({
+      id: row.id,
+      oldStatus: row.oldStatus,
+      newStatus: row.newStatus,
+      createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : new Date(row.createdAt).toISOString(),
+      changedByName: row.changedByName,
+      changedByEmail: row.changedByEmail,
+      note: row.note
+    });
+    return acc;
+  }, {});
+
   return rows.map((row) => ({
     id: row.id,
     customerName: row.customerName,
@@ -51,7 +94,8 @@ export async function listAdminBookings() {
     address: row.address,
     notes: row.notes,
     total: Number(row.total ?? 0),
-    services: row.services ?? ""
+    services: row.services ?? "",
+    statusHistory: historyByBooking[row.id] ?? []
   }));
 }
 

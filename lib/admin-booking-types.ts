@@ -15,6 +15,17 @@ export type AdminBooking = {
   notes: string | null;
   total: number;
   services: string;
+  statusHistory: BookingStatusHistory[];
+};
+
+export type BookingStatusHistory = {
+  id: string;
+  oldStatus: BookingStatus;
+  newStatus: BookingStatus;
+  createdAt: string;
+  changedByName: string | null;
+  changedByEmail: string | null;
+  note: string | null;
 };
 
 export const bookingStatusLabels: Record<BookingStatus, string> = {
