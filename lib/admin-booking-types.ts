@@ -19,8 +19,14 @@ export type AdminBooking = {
   notes: string | null;
   total: number;
   services: string;
+  serviceNames: string[];
+  barberId: string | null;
+  barberName: string | null;
   statusHistory: BookingStatusHistory[];
 };
+
+export type AdminBookingServiceOption = { name: string; price: number; duration: number };
+export type AdminBookingBarberOption = { id: string; name: string };
 
 export type BookingStatusHistory = {
   id: string;

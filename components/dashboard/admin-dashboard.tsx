@@ -7,8 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/utils";
-import { appointmentTypes, bookingStatusLabels, bookingStatuses, paymentMethods, type AdminBooking, type AppointmentType, type BookingStatus, type PaymentMethod } from "@/lib/admin-booking-types";
+import {
+  appointmentTypes,
+  bookingStatusLabels,
+  bookingStatuses,
+  paymentMethods,
+  type AdminBooking,
+  type AdminBookingBarberOption,
+  type AdminBookingServiceOption,
+  type AppointmentType,
+  type BookingStatus,
+  type PaymentMethod
+} from "@/lib/admin-booking-types";
 
 const userRoles = ["SUPER_ADMIN", "ADMIN", "MANAGER", "BARBER", "CUSTOMER"] as const;
 
@@ -22,14 +34,25 @@ type AdminUser = {
   createdAt: string;
 };
 
+type AdminContent = {
+  services: Array<{ id: string; name: string; category: string; description: string; duration: number; price: number; active: boolean }>;
+  gallery: Array<{ id: string; title: string; imageUrl: string; alt: string; category: string; published: boolean }>;
+  offers: Array<{ id: string; code: string; description: string; discountPct: number; active: boolean; expiresAt: string | null }>;
+  templates: Array<{ id: string; type: "email" | "whatsapp"; key: string; subject?: string; body: string }>;
+};
+
 export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: string | null; email?: string | null; roles: string[] }; locale: string }) {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [bookingOptions, setBookingOptions] = useState<{ services: AdminBookingServiceOption[]; barbers: AdminBookingBarberOption[] }>({ services: [], barbers: [] });
+  const [content, setContent] = useState<AdminContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userError, setUserError] = useState<string | null>(null);
+  const [contentError, setContentError] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "ALL", date: "" });
   const [userSearch, setUserSearch] = useState("");
@@ -44,10 +67,26 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Could not load bookings");
       setBookings(payload.bookings);
+      setBookingOptions(payload.options ?? { services: [], barbers: [] });
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load bookings");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadContent() {
+    setContentLoading(true);
+    setContentError(null);
+    try {
+      const response = await fetch("/api/admin/content", { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Could not load content");
+      setContent(payload);
+    } catch (loadError) {
+      setContentError(loadError instanceof Error ? loadError.message : "Could not load content");
+    } finally {
+      setContentLoading(false);
     }
   }
 
@@ -189,7 +228,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
     }
   }
 
-  async function updateBookingDetails(id: string, details: { date: string; appointmentType: AppointmentType; paymentMethod: PaymentMethod; address: string | null; notes: string | null }) {
+  async function updateBookingDetails(id: string, details: { date: string; appointmentType: AppointmentType; paymentMethod: PaymentMethod; address: string | null; notes: string | null; serviceNames: string[]; barberId: string | null }) {
     setSavingId(id);
     setError(null);
     try {
@@ -204,6 +243,9 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
       const applyUpdate = (booking: AdminBooking): AdminBooking => ({
         ...booking,
         ...details,
+        services: details.serviceNames.join(", "),
+        total: details.serviceNames.reduce((sum, name) => sum + (bookingOptions.services.find((service) => service.name === name)?.price ?? 0), 0),
+        barberName: bookingOptions.barbers.find((barber) => barber.id === details.barberId)?.name ?? null,
         statusHistory: [
           {
             id: `local-details-${changedAt}`,
@@ -229,6 +271,7 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
   useEffect(() => {
     void loadBookings();
     void loadUsers();
+    void loadContent();
   }, []);
 
   const stats = useMemo(() => {
@@ -505,10 +548,13 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
             </Card>
           </div>
         </div>
+        <ContentManager content={content} loading={contentLoading} error={contentError} onReload={loadContent} />
         {selectedBooking ? (
           <BookingDetailsModal
             key={selectedBooking.id}
             booking={selectedBooking}
+            serviceOptions={bookingOptions.services}
+            barberOptions={bookingOptions.barbers}
             onClose={() => setSelectedBooking(null)}
             onChangeStatus={changeStatus}
             onUpdateDetails={updateBookingDetails}
@@ -526,6 +572,160 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
       <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gold/15 text-gold">{icon}</div>
       <p className="mt-4 text-sm text-muted">{label}</p>
       <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
+    </Card>
+  );
+}
+
+function ContentManager({
+  content,
+  loading,
+  error,
+  onReload
+}: {
+  content: AdminContent | null;
+  loading: boolean;
+  error: string | null;
+  onReload: () => Promise<void>;
+}) {
+  const firstService = content?.services[0];
+  const firstTemplate = content?.templates[0];
+  const [service, setService] = useState({ id: "", name: "", category: "", description: "", duration: "30", price: "0", active: true });
+  const [gallery, setGallery] = useState({ title: "", imageUrl: "", alt: "", category: "Salon", published: true });
+  const [offer, setOffer] = useState({ code: "", description: "", discountPct: "10", expiresAt: "", active: true });
+  const [template, setTemplate] = useState({ id: "", type: "email" as "email" | "whatsapp", subject: "", body: "" });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (firstService && !service.id) {
+      setService({
+        id: firstService.id,
+        name: firstService.name,
+        category: firstService.category,
+        description: firstService.description,
+        duration: String(firstService.duration),
+        price: String(firstService.price),
+        active: firstService.active
+      });
+    }
+    if (firstTemplate && !template.id) {
+      setTemplate({ id: firstTemplate.id, type: firstTemplate.type, subject: firstTemplate.subject ?? "", body: firstTemplate.body });
+    }
+  }, [firstService, firstTemplate, service.id, template.id]);
+
+  async function save(payload: Record<string, unknown>) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/admin/content", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not save content");
+      setMessage("Saved");
+      await onReload();
+    } catch (saveError) {
+      setMessage(saveError instanceof Error ? saveError.message : "Could not save content");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <Card><CardTitle>Content Manager</CardTitle><CardContent className="mt-2">Loading content...</CardContent></Card>;
+
+  return (
+    <Card>
+      <div className="flex flex-col gap-3 border-b border-gold/15 pb-5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <CardTitle>Content Manager</CardTitle>
+          <CardContent className="mt-1 p-0">Update service pricing, gallery items, offers, and message templates.</CardContent>
+        </div>
+        <Button type="button" variant="outline" onClick={onReload}><RefreshCw className="h-4 w-4" />Refresh</Button>
+      </div>
+      {error || message ? <div className="mt-4 rounded-lg border border-gold/20 bg-gold/5 px-4 py-3 text-sm text-foreground">{error ?? message}</div> : null}
+      <div className="mt-5 grid gap-5 xl:grid-cols-4">
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void save({ action: "service", ...service, duration: Number(service.duration), price: Number(service.price) });
+          }}
+        >
+          <h3 className="text-sm font-semibold uppercase text-muted">Service Price</h3>
+          <select
+            value={service.id}
+            onChange={(event) => {
+              const selected = content?.services.find((item) => item.id === event.target.value);
+              if (selected) setService({ id: selected.id, name: selected.name, category: selected.category, description: selected.description, duration: String(selected.duration), price: String(selected.price), active: selected.active });
+            }}
+            className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
+          >
+            {content?.services.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+          <Input value={service.name} onChange={(event) => setService((current) => ({ ...current, name: event.target.value }))} placeholder="Service name" />
+          <Input value={service.category} onChange={(event) => setService((current) => ({ ...current, category: event.target.value }))} placeholder="Category" />
+          <Input value={service.price} onChange={(event) => setService((current) => ({ ...current, price: event.target.value }))} type="number" min="0" step="0.01" placeholder="Price" />
+          <Input value={service.duration} onChange={(event) => setService((current) => ({ ...current, duration: event.target.value }))} type="number" min="5" placeholder="Minutes" />
+          <Textarea value={service.description} onChange={(event) => setService((current) => ({ ...current, description: event.target.value }))} maxLength={191} />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={service.active} onChange={(event) => setService((current) => ({ ...current, active: event.target.checked }))} />Active</label>
+          <Button type="submit" disabled={saving} className="w-full">Save service</Button>
+        </form>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void save({ action: "gallery", ...gallery });
+            setGallery({ title: "", imageUrl: "", alt: "", category: "Salon", published: true });
+          }}
+        >
+          <h3 className="text-sm font-semibold uppercase text-muted">Gallery Picture</h3>
+          <Input value={gallery.title} onChange={(event) => setGallery((current) => ({ ...current, title: event.target.value }))} placeholder="Title" required />
+          <Input value={gallery.imageUrl} onChange={(event) => setGallery((current) => ({ ...current, imageUrl: event.target.value }))} placeholder="Image URL or /gallery/file.jpg" required />
+          <Input value={gallery.alt} onChange={(event) => setGallery((current) => ({ ...current, alt: event.target.value }))} placeholder="Alt text" required />
+          <Input value={gallery.category} onChange={(event) => setGallery((current) => ({ ...current, category: event.target.value }))} placeholder="Category" required />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={gallery.published} onChange={(event) => setGallery((current) => ({ ...current, published: event.target.checked }))} />Published</label>
+          <Button type="submit" disabled={saving} className="w-full">Add picture</Button>
+        </form>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void save({ action: "offer", ...offer, discountPct: Number(offer.discountPct), expiresAt: offer.expiresAt || null });
+          }}
+        >
+          <h3 className="text-sm font-semibold uppercase text-muted">Offer</h3>
+          <Input value={offer.code} onChange={(event) => setOffer((current) => ({ ...current, code: event.target.value }))} placeholder="Code" required />
+          <Input value={offer.discountPct} onChange={(event) => setOffer((current) => ({ ...current, discountPct: event.target.value }))} type="number" min="1" max="100" placeholder="Discount %" required />
+          <Input value={offer.expiresAt} onChange={(event) => setOffer((current) => ({ ...current, expiresAt: event.target.value }))} type="date" />
+          <Textarea value={offer.description} onChange={(event) => setOffer((current) => ({ ...current, description: event.target.value }))} placeholder="Offer description" maxLength={191} required />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={offer.active} onChange={(event) => setOffer((current) => ({ ...current, active: event.target.checked }))} />Active</label>
+          <Button type="submit" disabled={saving} className="w-full">Save offer</Button>
+        </form>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void save({ action: "template", ...template });
+          }}
+        >
+          <h3 className="text-sm font-semibold uppercase text-muted">Templates</h3>
+          <select
+            value={template.id}
+            onChange={(event) => {
+              const selected = content?.templates.find((item) => item.id === event.target.value);
+              if (selected) setTemplate({ id: selected.id, type: selected.type, subject: selected.subject ?? "", body: selected.body });
+            }}
+            className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
+          >
+            {content?.templates.map((item) => <option key={item.id} value={item.id}>{item.type}: {item.key}</option>)}
+          </select>
+          {template.type === "email" ? <Input value={template.subject} onChange={(event) => setTemplate((current) => ({ ...current, subject: event.target.value }))} placeholder="Subject" /> : null}
+          <Textarea value={template.body} onChange={(event) => setTemplate((current) => ({ ...current, body: event.target.value }))} maxLength={191} />
+          <Button type="submit" disabled={saving || !template.id} className="w-full">Save template</Button>
+        </form>
+      </div>
     </Card>
   );
 }
@@ -554,21 +754,27 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 
 function BookingDetailsModal({
   booking,
+  serviceOptions,
+  barberOptions,
   onClose,
   onChangeStatus,
   onUpdateDetails,
   saving
 }: {
   booking: AdminBooking;
+  serviceOptions: AdminBookingServiceOption[];
+  barberOptions: AdminBookingBarberOption[];
   onClose: () => void;
   onChangeStatus: (id: string, status: BookingStatus) => Promise<void>;
-  onUpdateDetails: (id: string, details: { date: string; appointmentType: AppointmentType; paymentMethod: PaymentMethod; address: string | null; notes: string | null }) => Promise<void>;
+  onUpdateDetails: (id: string, details: { date: string; appointmentType: AppointmentType; paymentMethod: PaymentMethod; address: string | null; notes: string | null; serviceNames: string[]; barberId: string | null }) => Promise<void>;
   saving: boolean;
 }) {
   const [editForm, setEditForm] = useState(() => ({
     date: toDateTimeLocal(booking.date),
     appointmentType: booking.appointmentType,
     paymentMethod: booking.paymentMethod,
+    serviceName: booking.serviceNames[0] ?? serviceOptions[0]?.name ?? "",
+    barberId: booking.barberId ?? "",
     address: booking.address ?? "",
     notes: booking.notes ?? ""
   }));
@@ -579,6 +785,8 @@ function BookingDetailsModal({
       date: new Date(editForm.date).toISOString(),
       appointmentType: editForm.appointmentType,
       paymentMethod: editForm.paymentMethod,
+      serviceNames: [editForm.serviceName].filter(Boolean),
+      barberId: editForm.barberId || null,
       address: editForm.address.trim() || null,
       notes: editForm.notes.trim() || null
     });
@@ -601,6 +809,7 @@ function BookingDetailsModal({
           <Detail label="Phone" value={booking.phone} />
           <Detail label="Email" value={booking.email} />
           <Detail label="Date" value={formatDate(booking.date)} />
+          <Detail label="Barber" value={booking.barberName || "Any available barber"} />
           <Detail label="Appointment type" value={booking.appointmentType} />
           <Detail label="Payment" value={booking.paymentMethod} />
           <Detail label="Total" value={formatCurrency(booking.total)} />
@@ -631,6 +840,26 @@ function BookingDetailsModal({
                 className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
               >
                 {paymentMethods.map((method) => <option key={method} value={method}>{method}</option>)}
+              </select>
+            </Field>
+            <Field label="Service">
+              <select
+                value={editForm.serviceName}
+                onChange={(event) => setEditForm((current) => ({ ...current, serviceName: event.target.value }))}
+                className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
+                required
+              >
+                {serviceOptions.map((service) => <option key={service.name} value={service.name}>{service.name} - {formatCurrency(service.price)}</option>)}
+              </select>
+            </Field>
+            <Field label="Barber">
+              <select
+                value={editForm.barberId}
+                onChange={(event) => setEditForm((current) => ({ ...current, barberId: event.target.value }))}
+                className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
+              >
+                <option value="">Any available barber</option>
+                {barberOptions.map((barber) => <option key={barber.id} value={barber.id}>{barber.name}</option>)}
               </select>
             </Field>
             <Field label="Address">

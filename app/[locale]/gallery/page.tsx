@@ -1,9 +1,14 @@
-import { gallery } from "@/lib/data";
+import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { GalleryGrid } from "@/components/sections/gallery-grid";
+import { listPublicGallery } from "@/lib/admin-content";
+
+export const dynamic = "force-dynamic";
 
 export default async function GalleryPage({ params }: { params: Promise<{ locale: string }> }) {
+  await connection();
   const { locale } = await params;
+  const gallery = await listPublicGallery();
   const copy =
     locale === "ar"
       ? {

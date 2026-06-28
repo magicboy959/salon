@@ -1,5 +1,6 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { query, transaction } from "@/lib/db";
+import { listPublicServices } from "@/lib/admin-content";
 import type { AppointmentType, BookingStatus, BookingStatusHistory, PaymentMethod } from "@/lib/admin-booking-types";
 
 type BookingRow = RowDataPacket & {
@@ -15,6 +16,8 @@ type BookingRow = RowDataPacket & {
   notes: string | null;
   total: string | number | null;
   services: string | null;
+  barberId: string | null;
+  barberName: string | null;
 };
 
 type StatusHistoryRow = RowDataPacket & {
@@ -41,10 +44,14 @@ export async function listAdminBookings() {
       Booking.paymentMethod,
       Booking.address,
       Booking.notes,
+      Booking.barberId,
+      BarberUser.name AS barberName,
       COALESCE(SUM(BookingItem.price), 0) AS total,
       COALESCE(GROUP_CONCAT(BookingItem.serviceName ORDER BY BookingItem.serviceName SEPARATOR ', '), '') AS services
     FROM Booking
     LEFT JOIN BookingItem ON BookingItem.bookingId = Booking.id
+    LEFT JOIN Employee BarberEmployee ON BarberEmployee.id = Booking.barberId
+    LEFT JOIN User BarberUser ON BarberUser.id = BarberEmployee.userId
     GROUP BY Booking.id
     ORDER BY Booking.date DESC
     LIMIT 100`
@@ -95,8 +102,28 @@ export async function listAdminBookings() {
     notes: row.notes,
     total: Number(row.total ?? 0),
     services: row.services ?? "",
+    serviceNames: (row.services ?? "").split(", ").filter(Boolean),
+    barberId: row.barberId,
+    barberName: row.barberName,
     statusHistory: historyByBooking[row.id] ?? []
   }));
+}
+
+export async function listAdminBookingOptions() {
+  const [services, barbers] = await Promise.all([
+    listPublicServices(),
+    query<Array<RowDataPacket & { id: string; name: string }>>(
+      `SELECT Employee.id, COALESCE(User.name, Employee.title) AS name
+      FROM Employee
+      INNER JOIN User ON User.id = Employee.userId
+      WHERE Employee.isBarber = true
+      ORDER BY User.name ASC`
+    )
+  ]);
+  return {
+    services: services.map((service) => ({ name: service.name, price: service.price, duration: service.duration })),
+    barbers
+  };
 }
 
 type StatusRow = RowDataPacket & { status: BookingStatus };
@@ -107,6 +134,8 @@ type BookingDetailRow = RowDataPacket & {
   paymentMethod: PaymentMethod;
   address: string | null;
   notes: string | null;
+  barberId: string | null;
+  services: string | null;
 };
 
 export type BookingDetailsUpdate = {
@@ -115,6 +144,8 @@ export type BookingDetailsUpdate = {
   paymentMethod: PaymentMethod;
   address: string | null;
   notes: string | null;
+  barberId: string | null;
+  serviceNames: string[];
 };
 
 export async function updateBookingStatus(id: string, status: BookingStatus, changedByUserId?: string) {
@@ -137,7 +168,20 @@ export async function updateBookingStatus(id: string, status: BookingStatus, cha
 export async function updateBookingDetails(id: string, input: BookingDetailsUpdate, changedByUserId?: string) {
   return transaction(async (connection) => {
     const [rows] = await connection.execute<BookingDetailRow[]>(
-      "SELECT status, date, appointmentType, paymentMethod, address, notes FROM Booking WHERE id = ? LIMIT 1",
+      `SELECT
+        Booking.status,
+        Booking.date,
+        Booking.appointmentType,
+        Booking.paymentMethod,
+        Booking.address,
+        Booking.notes,
+        Booking.barberId,
+        COALESCE(GROUP_CONCAT(BookingItem.serviceName ORDER BY BookingItem.serviceName SEPARATOR ', '), '') AS services
+      FROM Booking
+      LEFT JOIN BookingItem ON BookingItem.bookingId = Booking.id
+      WHERE Booking.id = ?
+      GROUP BY Booking.id
+      LIMIT 1`,
       [id]
     );
     const current = rows[0];
@@ -147,18 +191,35 @@ export async function updateBookingDetails(id: string, input: BookingDetailsUpda
     if (Number.isNaN(nextDate.getTime())) throw new Error("INVALID_DATE");
 
     const currentDate = current.date instanceof Date ? current.date.toISOString() : new Date(current.date).toISOString();
+    const nextServiceNames = input.serviceNames.filter(Boolean);
+    const currentServices = (current.services ?? "").split(", ").filter(Boolean);
+    const serviceChanged = currentServices.join("|") !== nextServiceNames.join("|");
     const changes = [
       currentDate !== nextDate.toISOString() ? `date: ${currentDate} -> ${nextDate.toISOString()}` : null,
       current.appointmentType !== input.appointmentType ? `type: ${current.appointmentType} -> ${input.appointmentType}` : null,
       current.paymentMethod !== input.paymentMethod ? `payment: ${current.paymentMethod} -> ${input.paymentMethod}` : null,
+      current.barberId !== input.barberId ? "barber updated" : null,
+      serviceChanged ? "services updated" : null,
       (current.address ?? "") !== (input.address ?? "") ? "address updated" : null,
       (current.notes ?? "") !== (input.notes ?? "") ? "notes updated" : null
     ].filter((change): change is string => Boolean(change));
 
     const [result] = await connection.execute<ResultSetHeader>(
-      "UPDATE Booking SET date = ?, appointmentType = ?, paymentMethod = ?, address = ?, notes = ?, updatedAt = NOW(3) WHERE id = ?",
-      [nextDate, input.appointmentType, input.paymentMethod, input.address, input.notes, id]
+      "UPDATE Booking SET date = ?, appointmentType = ?, paymentMethod = ?, address = ?, notes = ?, barberId = ?, updatedAt = NOW(3) WHERE id = ?",
+      [nextDate, input.appointmentType, input.paymentMethod, input.address, input.notes, input.barberId, id]
     );
+
+    if (result.affectedRows && serviceChanged) {
+      const services = await listPublicServices();
+      await connection.execute<ResultSetHeader>("DELETE FROM BookingItem WHERE bookingId = ?", [id]);
+      for (const serviceName of nextServiceNames) {
+        const service = services.find((item) => item.name === serviceName);
+        await connection.execute<ResultSetHeader>(
+          "INSERT INTO BookingItem (id, bookingId, serviceName, price, duration) VALUES (UUID(), ?, ?, ?, ?)",
+          [id, serviceName, service?.price ?? 0, service?.duration ?? 30]
+        );
+      }
+    }
 
     if (result.affectedRows && changes.length) {
       await connection.execute<ResultSetHeader>(

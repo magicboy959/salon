@@ -125,6 +125,35 @@ export async function sendWelcomeEmail(input: { to: string; name: string }) {
   });
 }
 
+export async function sendPasswordResetEmail(input: { to: string; name?: string | null; resetUrl: string }) {
+  const mailer = transporter("noreply");
+  if (!mailer) return { skipped: true };
+
+  const name = input.name || "Customer";
+  return mailer.sendMail({
+    from: fromAddress("noreply"),
+    to: input.to,
+    subject: "Reset your Alshanab Alaswad Salon password",
+    text: [
+      `Hello ${name},`,
+      "",
+      "Use this link to reset your password. The link expires in 1 hour.",
+      input.resetUrl,
+      "",
+      "If you did not request this, you can ignore this email."
+    ].join("\n"),
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#222">
+        <h2>Password reset</h2>
+        <p>Hello <strong>${escapeHtml(name)}</strong>,</p>
+        <p>Use the button below to reset your password. The link expires in 1 hour.</p>
+        <p><a href="${escapeHtml(input.resetUrl)}" style="display:inline-block;background:#111;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none">Reset password</a></p>
+        <p>If you did not request this, you can ignore this email.</p>
+      </div>
+    `
+  });
+}
+
 export function whatsappBookingUrl(message: string) {
   const encoded = encodeURIComponent(message);
   return `https://wa.me/${siteConfig.whatsapp}?text=${encoded}`;

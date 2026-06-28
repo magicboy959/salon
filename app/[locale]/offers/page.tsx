@@ -1,8 +1,13 @@
+import { connection } from "next/server";
 import { ContentPage } from "@/components/sections/content-page";
-import { offers } from "@/lib/data";
+import { listPublicOffers } from "@/lib/admin-content";
+
+export const dynamic = "force-dynamic";
 
 export default async function OffersPage({ params }: { params: Promise<{ locale: string }> }) {
+  await connection();
   const { locale } = await params;
+  const offers = await listPublicOffers();
   const copy =
     locale === "ar"
       ? {
@@ -14,5 +19,5 @@ export default async function OffersPage({ params }: { params: Promise<{ locale:
           subtitle: "Seasonal offers, coupons, gift cards, taxes, invoices, and loyalty rewards managed from admin."
         };
 
-  return <ContentPage title={copy.title} subtitle={copy.subtitle} items={offers.map((offer) => `${offer.title} - AED ${offer.price}`)} locale={locale} />;
+  return <ContentPage title={copy.title} subtitle={copy.subtitle} items={offers} locale={locale} />;
 }

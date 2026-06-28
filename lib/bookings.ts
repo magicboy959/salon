@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { query, transaction } from "@/lib/db";
-import { services } from "@/lib/data";
+import { listPublicServices } from "@/lib/admin-content";
 import type { BookingInput } from "@/lib/validations";
 
 export type StoredBooking = {
@@ -48,6 +48,7 @@ export async function createStoredBooking(input: BookingInput): Promise<StoredBo
   const barberId = await resolveForeignId("Employee", input.barberId);
   const branchId = await resolveForeignId("Branch", input.branchId);
   const customerId = await resolveCustomerId(input.email);
+  const services = await listPublicServices();
   const items = input.serviceIds.map((serviceName) => {
     const service = services.find((item) => item.name === serviceName);
     return {

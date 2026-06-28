@@ -1,7 +1,13 @@
+import { connection } from "next/server";
 import { BookingForm } from "@/components/forms/booking-form";
+import { listPublicServices } from "@/lib/admin-content";
+
+export const dynamic = "force-dynamic";
 
 export default async function BookPage({ params }: { params: Promise<{ locale: string }> }) {
+  await connection();
   const { locale } = await params;
+  const services = await listPublicServices();
   const copy =
     locale === "ar"
       ? {
@@ -20,7 +26,7 @@ export default async function BookPage({ params }: { params: Promise<{ locale: s
       <div className="container-shell">
         <h1 className="text-5xl font-bold text-foreground">{copy.title}</h1>
         <p className="mb-8 mt-4 max-w-3xl text-muted">{copy.subtitle}</p>
-        <BookingForm locale={locale} />
+        <BookingForm locale={locale} services={services} />
       </div>
     </section>
   );

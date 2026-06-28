@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { listAdminBookings, updateBookingDetails, updateBookingStatus } from "@/lib/admin-bookings";
+import { listAdminBookingOptions, listAdminBookings, updateBookingDetails, updateBookingStatus } from "@/lib/admin-bookings";
 import { appointmentTypes, bookingStatuses, paymentMethods } from "@/lib/admin-booking-types";
 import { requireAdmin } from "@/lib/admin-auth";
 
@@ -16,7 +16,9 @@ const detailsSchema = z.object({
   appointmentType: z.enum(appointmentTypes),
   paymentMethod: z.enum(paymentMethods),
   address: z.string().max(191).nullable(),
-  notes: z.string().max(191).nullable()
+  notes: z.string().max(191).nullable(),
+  serviceNames: z.array(z.string().min(1).max(120)).min(1).max(8),
+  barberId: z.string().max(191).nullable()
 });
 
 export async function GET() {
@@ -24,8 +26,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const bookings = await listAdminBookings();
-    return NextResponse.json({ bookings });
+    const [bookings, options] = await Promise.all([listAdminBookings(), listAdminBookingOptions()]);
+    return NextResponse.json({ bookings, options });
   } catch (error) {
     console.error("Admin bookings fetch failed", error);
     return NextResponse.json({ error: "Could not load bookings. Check database access." }, { status: 500 });

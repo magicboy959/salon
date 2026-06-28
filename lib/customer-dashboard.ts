@@ -94,3 +94,11 @@ export async function getCustomerDashboard(email: string) {
     }))
   };
 }
+
+export async function updateCustomerProfile(email: string, input: { name: string; phone?: string | null }) {
+  await query("UPDATE User SET name = ?, phone = ?, updatedAt = NOW(3) WHERE email = ?", [
+    input.name,
+    input.phone?.trim() || null,
+    email
+  ]);
+}

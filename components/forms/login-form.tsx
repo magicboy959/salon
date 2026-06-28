@@ -70,6 +70,9 @@ export function LoginForm({ locale }: { locale: string }) {
             <p className="text-center text-sm text-muted">
               New customer? <Link className="font-semibold text-gold" href={`/${locale}/register`}>Create account</Link>
             </p>
+            <p className="text-center text-sm text-muted">
+              <Link className="font-semibold text-gold" href={`/${locale}/forgot-password`}>Forgot password?</Link>
+            </p>
           </form>
         </Card>
       </div>

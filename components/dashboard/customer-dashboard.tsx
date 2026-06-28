@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Gift, Scissors, Wallet } from "lucide-react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CustomerProfileForm } from "@/components/dashboard/customer-profile-form";
 import { bookingStatusLabels, type BookingStatus } from "@/lib/admin-booking-types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -75,13 +76,7 @@ export function CustomerDashboard({ data, locale }: { data: CustomerDashboardDat
 
           <Card>
             <CardTitle>Profile</CardTitle>
-            <div className="mt-5 space-y-3">
-              <Detail label="Name" value={data.profile.name || "-"} />
-              <Detail label="Email" value={data.profile.email || "-"} />
-              <Detail label="Phone" value={data.profile.phone || "-"} />
-              <Detail label="Store credit" value={formatCurrency(data.profile.creditBalance)} />
-              <Detail label="Reward points" value={String(data.profile.rewardPoints)} />
-            </div>
+            <CustomerProfileForm profile={data.profile} />
           </Card>
         </div>
       </div>
@@ -96,15 +91,6 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
       <p className="mt-4 text-sm text-muted">{label}</p>
       <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
     </Card>
-  );
-}
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-gold/15 bg-gold/5 p-3">
-      <p className="text-xs font-semibold uppercase text-muted">{label}</p>
-      <p className="mt-1 break-words text-sm font-medium text-foreground">{value}</p>
-    </div>
   );
 }
 

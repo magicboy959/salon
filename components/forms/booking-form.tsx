@@ -5,14 +5,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { CalendarCheck } from "lucide-react";
 import { bookingSchema, type BookingInput } from "@/lib/validations";
-import { services, barbers } from "@/lib/data";
+import { barbers, services as staticServices } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 
-export function BookingForm({ locale = "en" }: { locale?: string }) {
+type BookingService = { name: string; price: number; duration: number };
+
+export function BookingForm({ locale = "en", services = [...staticServices] }: { locale?: string; services?: BookingService[] }) {
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const copy =
     locale === "ar"

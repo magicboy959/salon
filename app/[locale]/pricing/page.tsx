@@ -1,8 +1,13 @@
+import { connection } from "next/server";
 import { ContentPage } from "@/components/sections/content-page";
-import { services } from "@/lib/data";
+import { listPublicServices } from "@/lib/admin-content";
+
+export const dynamic = "force-dynamic";
 
 export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
+  await connection();
   const { locale } = await params;
+  const services = await listPublicServices();
   const copy =
     locale === "ar"
       ? {
