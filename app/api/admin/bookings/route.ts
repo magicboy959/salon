@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { listAdminBookings, updateBookingStatus } from "@/lib/admin-bookings";
-import { bookingStatuses } from "@/lib/admin-booking-types";
+import { listAdminBookings, updateBookingDetails, updateBookingStatus } from "@/lib/admin-bookings";
+import { appointmentTypes, bookingStatuses, paymentMethods } from "@/lib/admin-booking-types";
 import { requireAdmin } from "@/lib/admin-auth";
 
 const statusSchema = z.object({
   id: z.string().min(1),
   status: z.enum(bookingStatuses)
+});
+
+const detailsSchema = z.object({
+  action: z.literal("details"),
+  id: z.string().min(1),
+  date: z.string().datetime(),
+  appointmentType: z.enum(appointmentTypes),
+  paymentMethod: z.enum(paymentMethods),
+  address: z.string().max(191).nullable(),
+  notes: z.string().max(191).nullable()
 });
 
 export async function GET() {
@@ -26,7 +36,20 @@ export async function PATCH(request: NextRequest) {
   const user = await requireAdmin();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const parsed = statusSchema.safeParse(await request.json());
+  const body = await request.json();
+  const details = detailsSchema.safeParse(body);
+  if (details.success) {
+    try {
+      const affectedRows = await updateBookingDetails(details.data.id, details.data, user.id);
+      if (!affectedRows) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      console.error("Admin booking details update failed", error);
+      return NextResponse.json({ error: "Could not update booking details. Check database access." }, { status: 500 });
+    }
+  }
+
+  const parsed = statusSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   try {

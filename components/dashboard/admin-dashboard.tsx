@@ -8,7 +8,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils";
-import { bookingStatusLabels, bookingStatuses, type AdminBooking, type BookingStatus } from "@/lib/admin-booking-types";
+import { appointmentTypes, bookingStatusLabels, bookingStatuses, paymentMethods, type AdminBooking, type AppointmentType, type BookingStatus, type PaymentMethod } from "@/lib/admin-booking-types";
 
 const userRoles = ["SUPER_ADMIN", "ADMIN", "MANAGER", "BARBER", "CUSTOMER"] as const;
 
@@ -184,6 +184,43 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
       );
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : "Could not update booking");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function updateBookingDetails(id: string, details: { date: string; appointmentType: AppointmentType; paymentMethod: PaymentMethod; address: string | null; notes: string | null }) {
+    setSavingId(id);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "details", id, ...details })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Could not update booking details");
+      const changedAt = new Date().toISOString();
+      const applyUpdate = (booking: AdminBooking): AdminBooking => ({
+        ...booking,
+        ...details,
+        statusHistory: [
+          {
+            id: `local-details-${changedAt}`,
+            oldStatus: booking.status,
+            newStatus: booking.status,
+            createdAt: changedAt,
+            changedByName: adminUser.name ?? null,
+            changedByEmail: adminUser.email ?? null,
+            note: "Booking details updated"
+          },
+          ...booking.statusHistory
+        ]
+      });
+      setBookings((current) => current.map((booking) => (booking.id === id ? applyUpdate(booking) : booking)));
+      setSelectedBooking((current) => (current?.id === id ? applyUpdate(current) : current));
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : "Could not update booking details");
     } finally {
       setSavingId(null);
     }
@@ -468,7 +505,16 @@ export function AdminDashboard({ adminUser, locale }: { adminUser: { name?: stri
             </Card>
           </div>
         </div>
-        {selectedBooking ? <BookingDetailsModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} onChangeStatus={changeStatus} saving={savingId === selectedBooking.id} /> : null}
+        {selectedBooking ? (
+          <BookingDetailsModal
+            key={selectedBooking.id}
+            booking={selectedBooking}
+            onClose={() => setSelectedBooking(null)}
+            onChangeStatus={changeStatus}
+            onUpdateDetails={updateBookingDetails}
+            saving={savingId === selectedBooking.id}
+          />
+        ) : null}
       </div>
     </section>
   );
@@ -510,13 +556,34 @@ function BookingDetailsModal({
   booking,
   onClose,
   onChangeStatus,
+  onUpdateDetails,
   saving
 }: {
   booking: AdminBooking;
   onClose: () => void;
   onChangeStatus: (id: string, status: BookingStatus) => Promise<void>;
+  onUpdateDetails: (id: string, details: { date: string; appointmentType: AppointmentType; paymentMethod: PaymentMethod; address: string | null; notes: string | null }) => Promise<void>;
   saving: boolean;
 }) {
+  const [editForm, setEditForm] = useState(() => ({
+    date: toDateTimeLocal(booking.date),
+    appointmentType: booking.appointmentType,
+    paymentMethod: booking.paymentMethod,
+    address: booking.address ?? "",
+    notes: booking.notes ?? ""
+  }));
+
+  async function submitEdit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await onUpdateDetails(booking.id, {
+      date: new Date(editForm.date).toISOString(),
+      appointmentType: editForm.appointmentType,
+      paymentMethod: editForm.paymentMethod,
+      address: editForm.address.trim() || null,
+      notes: editForm.notes.trim() || null
+    });
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white shadow-2xl">
@@ -540,6 +607,45 @@ function BookingDetailsModal({
           <Detail label="Address" value={booking.address || "-"} className="md:col-span-2" />
           <Detail label="Notes" value={booking.notes || "-"} className="md:col-span-2" />
         </div>
+        <form onSubmit={submitEdit} className="border-t border-gold/15 p-5">
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold uppercase text-muted">Edit Booking</h3>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="Date and time">
+              <Input value={editForm.date} onChange={(event) => setEditForm((current) => ({ ...current, date: event.target.value }))} type="datetime-local" required />
+            </Field>
+            <Field label="Appointment type">
+              <select
+                value={editForm.appointmentType}
+                onChange={(event) => setEditForm((current) => ({ ...current, appointmentType: event.target.value as AppointmentType }))}
+                className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
+              >
+                {appointmentTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </Field>
+            <Field label="Payment method">
+              <select
+                value={editForm.paymentMethod}
+                onChange={(event) => setEditForm((current) => ({ ...current, paymentMethod: event.target.value as PaymentMethod }))}
+                className="h-11 w-full rounded-md border border-gold/25 bg-white px-3 text-sm text-foreground"
+              >
+                {paymentMethods.map((method) => <option key={method} value={method}>{method}</option>)}
+              </select>
+            </Field>
+            <Field label="Address">
+              <Input value={editForm.address} onChange={(event) => setEditForm((current) => ({ ...current, address: event.target.value }))} />
+            </Field>
+            <Field label="Notes">
+              <Input value={editForm.notes} onChange={(event) => setEditForm((current) => ({ ...current, notes: event.target.value }))} />
+            </Field>
+            <div className="flex items-end">
+              <Button type="submit" disabled={saving} className="w-full">
+                {saving ? "Saving..." : "Save changes"}
+              </Button>
+            </div>
+          </div>
+        </form>
         <div className="border-t border-gold/15 p-5">
           <div className="flex items-center gap-2">
             <Clock3 className="h-4 w-4 text-gold" />
@@ -550,7 +656,7 @@ function BookingDetailsModal({
               booking.statusHistory.map((event) => (
                 <div key={event.id} className="rounded-md border border-gold/15 bg-gold/5 p-3">
                   <p className="text-sm font-semibold text-foreground">
-                    {bookingStatusLabels[event.oldStatus]} to {bookingStatusLabels[event.newStatus]}
+                    {event.oldStatus === event.newStatus ? "Booking details updated" : `${bookingStatusLabels[event.oldStatus]} to ${bookingStatusLabels[event.newStatus]}`}
                   </p>
                   <p className="mt-1 text-xs text-muted">
                     {formatDate(event.createdAt)} by {event.changedByName || event.changedByEmail || "System"}
@@ -620,6 +726,13 @@ function formatDate(value: string) {
     timeStyle: "short",
     timeZone: "Asia/Dubai"
   }).format(new Date(value));
+}
+
+function toDateTimeLocal(value: string) {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 16);
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

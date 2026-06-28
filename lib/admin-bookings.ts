@@ -1,16 +1,16 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
-import { query } from "@/lib/db";
-import type { BookingStatus, BookingStatusHistory } from "@/lib/admin-booking-types";
+import { query, transaction } from "@/lib/db";
+import type { AppointmentType, BookingStatus, BookingStatusHistory, PaymentMethod } from "@/lib/admin-booking-types";
 
 type BookingRow = RowDataPacket & {
   id: string;
   customerName: string;
   email: string;
   phone: string;
-  appointmentType: "SALON" | "HOME";
+  appointmentType: AppointmentType;
   status: BookingStatus;
   date: Date;
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
   address: string | null;
   notes: string | null;
   total: string | number | null;
@@ -100,6 +100,22 @@ export async function listAdminBookings() {
 }
 
 type StatusRow = RowDataPacket & { status: BookingStatus };
+type BookingDetailRow = RowDataPacket & {
+  status: BookingStatus;
+  date: Date | string;
+  appointmentType: AppointmentType;
+  paymentMethod: PaymentMethod;
+  address: string | null;
+  notes: string | null;
+};
+
+export type BookingDetailsUpdate = {
+  date: string;
+  appointmentType: AppointmentType;
+  paymentMethod: PaymentMethod;
+  address: string | null;
+  notes: string | null;
+};
 
 export async function updateBookingStatus(id: string, status: BookingStatus, changedByUserId?: string) {
   const rows = await query<StatusRow[]>("SELECT status FROM Booking WHERE id = ? LIMIT 1", [id]);
@@ -116,4 +132,41 @@ export async function updateBookingStatus(id: string, status: BookingStatus, cha
   }
 
   return result.affectedRows;
+}
+
+export async function updateBookingDetails(id: string, input: BookingDetailsUpdate, changedByUserId?: string) {
+  return transaction(async (connection) => {
+    const [rows] = await connection.execute<BookingDetailRow[]>(
+      "SELECT status, date, appointmentType, paymentMethod, address, notes FROM Booking WHERE id = ? LIMIT 1",
+      [id]
+    );
+    const current = rows[0];
+    if (!current) return 0;
+
+    const nextDate = new Date(input.date);
+    if (Number.isNaN(nextDate.getTime())) throw new Error("INVALID_DATE");
+
+    const currentDate = current.date instanceof Date ? current.date.toISOString() : new Date(current.date).toISOString();
+    const changes = [
+      currentDate !== nextDate.toISOString() ? `date: ${currentDate} -> ${nextDate.toISOString()}` : null,
+      current.appointmentType !== input.appointmentType ? `type: ${current.appointmentType} -> ${input.appointmentType}` : null,
+      current.paymentMethod !== input.paymentMethod ? `payment: ${current.paymentMethod} -> ${input.paymentMethod}` : null,
+      (current.address ?? "") !== (input.address ?? "") ? "address updated" : null,
+      (current.notes ?? "") !== (input.notes ?? "") ? "notes updated" : null
+    ].filter((change): change is string => Boolean(change));
+
+    const [result] = await connection.execute<ResultSetHeader>(
+      "UPDATE Booking SET date = ?, appointmentType = ?, paymentMethod = ?, address = ?, notes = ?, updatedAt = NOW(3) WHERE id = ?",
+      [nextDate, input.appointmentType, input.paymentMethod, input.address, input.notes, id]
+    );
+
+    if (result.affectedRows && changes.length) {
+      await connection.execute<ResultSetHeader>(
+        "INSERT INTO BookingStatusLog (id, bookingId, changedByUserId, oldStatus, newStatus, note, createdAt) VALUES (UUID(), ?, ?, ?, ?, ?, NOW(3))",
+        [id, changedByUserId ?? null, current.status, current.status, `Booking details updated: ${changes.join("; ")}`]
+      );
+    }
+
+    return result.affectedRows;
+  });
 }
