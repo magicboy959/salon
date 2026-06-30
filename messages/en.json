@@ -24,7 +24,9 @@
     "terms": "Terms",
     "refundPolicy": "Refund Policy",
     "login": "Sign in",
-    "register": "Register"
+    "register": "Register",
+    "logout": "Log out",
+    "portal": "Portal"
   },
   "home": {
     "eyebrow": "Luxury men's grooming in Dubai",

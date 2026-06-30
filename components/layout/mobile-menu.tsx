@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LogIn, Menu, UserPlus, X } from "lucide-react";
+import { LogIn, LogOut, Menu, UserPlus, X } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
@@ -16,32 +17,57 @@ export function MobileMenu({
   items,
   bookLabel,
   loginLabel,
-  registerLabel
+  registerLabel,
+  logoutLabel,
+  portalLabel,
+  isAuthenticated
 }: {
   locale: string;
   items: NavItem[];
   bookLabel: string;
   loginLabel: string;
   registerLabel: string;
+  logoutLabel: string;
+  portalLabel: string;
+  isAuthenticated: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  function logout() {
+    setOpen(false);
+    void signOut({ callbackUrl: `/${locale}/login` });
+  }
 
   return (
     <>
       <div className="flex items-center gap-2">
         <LanguageSwitcher locale={locale} />
-        <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
-          <Link href={`/${locale}/login`}>
-            <LogIn className="h-4 w-4" />
-            {loginLabel}
-          </Link>
-        </Button>
-        <Button asChild variant="dark" size="sm" className="hidden lg:inline-flex">
-          <Link href={`/${locale}/register`}>
-            <UserPlus className="h-4 w-4" />
-            {registerLabel}
-          </Link>
-        </Button>
+        {isAuthenticated ? (
+          <>
+            <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
+              <Link href={`/${locale}/portal`}>{portalLabel}</Link>
+            </Button>
+            <Button type="button" variant="dark" size="sm" className="hidden text-white lg:inline-flex" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+              {logoutLabel}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
+              <Link href={`/${locale}/login`}>
+                <LogIn className="h-4 w-4" />
+                {loginLabel}
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="hidden text-white lg:inline-flex">
+              <Link href={`/${locale}/register`}>
+                <UserPlus className="h-4 w-4" />
+                {registerLabel}
+              </Link>
+            </Button>
+          </>
+        )}
         <Button asChild size="sm">
           <Link href={`/${locale}/book`}>{bookLabel}</Link>
         </Button>
@@ -70,20 +96,34 @@ export function MobileMenu({
                 {item.label}
               </Link>
             ))}
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gold/15 pt-3">
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/${locale}/login`} onClick={() => setOpen(false)}>
-                  <LogIn className="h-4 w-4" />
-                  {loginLabel}
-                </Link>
-              </Button>
-              <Button asChild variant="dark" size="sm">
-                <Link href={`/${locale}/register`} onClick={() => setOpen(false)}>
-                  <UserPlus className="h-4 w-4" />
-                  {registerLabel}
-                </Link>
-              </Button>
-            </div>
+            {isAuthenticated ? (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gold/15 pt-3">
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/${locale}/portal`} onClick={() => setOpen(false)}>
+                    {portalLabel}
+                  </Link>
+                </Button>
+                <Button type="button" variant="dark" size="sm" className="text-white" onClick={logout}>
+                  <LogOut className="h-4 w-4" />
+                  {logoutLabel}
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gold/15 pt-3">
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/${locale}/login`} onClick={() => setOpen(false)}>
+                    <LogIn className="h-4 w-4" />
+                    {loginLabel}
+                  </Link>
+                </Button>
+                <Button asChild size="sm" className="text-white">
+                  <Link href={`/${locale}/register`} onClick={() => setOpen(false)}>
+                    <UserPlus className="h-4 w-4" />
+                    {registerLabel}
+                  </Link>
+                </Button>
+              </div>
+            )}
           </nav>
         </div>
       ) : null}

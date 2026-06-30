@@ -4,9 +4,11 @@ import { getTranslations } from "next-intl/server";
 import { publicNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { MobileMenu } from "@/components/layout/mobile-menu";
+import { auth } from "@/lib/auth";
 
 export async function Navbar({ locale }: { locale: string }) {
   const t = await getTranslations("nav");
+  const session = await auth();
   const navItems = publicNav.map((item) => ({ href: item.href, label: t(item.key) }));
 
   return (
@@ -27,7 +29,16 @@ export async function Navbar({ locale }: { locale: string }) {
             </Link>
           ))}
         </nav>
-        <MobileMenu locale={locale} items={navItems} bookLabel={t("book")} loginLabel={t("login")} registerLabel={t("register")} />
+        <MobileMenu
+          locale={locale}
+          items={navItems}
+          bookLabel={t("book")}
+          loginLabel={t("login")}
+          registerLabel={t("register")}
+          logoutLabel={t("logout")}
+          portalLabel={t("portal")}
+          isAuthenticated={Boolean(session?.user)}
+        />
       </div>
     </header>
   );
