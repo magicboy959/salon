@@ -27,7 +27,7 @@ export async function Navbar({ locale }: { locale: string }) {
             </Link>
           ))}
         </nav>
-        <MobileMenu locale={locale} items={navItems} bookLabel={t("book")} />
+        <MobileMenu locale={locale} items={navItems} bookLabel={t("book")} loginLabel={t("login")} registerLabel={t("register")} />
       </div>
     </header>
   );

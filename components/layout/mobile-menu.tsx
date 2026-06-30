@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { LogIn, Menu, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
@@ -14,11 +14,15 @@ type NavItem = {
 export function MobileMenu({
   locale,
   items,
-  bookLabel
+  bookLabel,
+  loginLabel,
+  registerLabel
 }: {
   locale: string;
   items: NavItem[];
   bookLabel: string;
+  loginLabel: string;
+  registerLabel: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -26,6 +30,18 @@ export function MobileMenu({
     <>
       <div className="flex items-center gap-2">
         <LanguageSwitcher locale={locale} />
+        <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
+          <Link href={`/${locale}/login`}>
+            <LogIn className="h-4 w-4" />
+            {loginLabel}
+          </Link>
+        </Button>
+        <Button asChild variant="dark" size="sm" className="hidden lg:inline-flex">
+          <Link href={`/${locale}/register`}>
+            <UserPlus className="h-4 w-4" />
+            {registerLabel}
+          </Link>
+        </Button>
         <Button asChild size="sm">
           <Link href={`/${locale}/book`}>{bookLabel}</Link>
         </Button>
@@ -54,6 +70,20 @@ export function MobileMenu({
                 {item.label}
               </Link>
             ))}
+            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gold/15 pt-3">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/${locale}/login`} onClick={() => setOpen(false)}>
+                  <LogIn className="h-4 w-4" />
+                  {loginLabel}
+                </Link>
+              </Button>
+              <Button asChild variant="dark" size="sm">
+                <Link href={`/${locale}/register`} onClick={() => setOpen(false)}>
+                  <UserPlus className="h-4 w-4" />
+                  {registerLabel}
+                </Link>
+              </Button>
+            </div>
           </nav>
         </div>
       ) : null}

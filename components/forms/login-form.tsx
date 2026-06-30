@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { LogIn } from "lucide-react";
+import { CalendarCheck, CreditCard, LogIn, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ export function LoginForm({ locale }: { locale: string }) {
     setLoading(true);
     setError(null);
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/admin`;
+    const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/portal`;
 
     try {
       const result = await signIn("credentials", {
@@ -48,11 +48,35 @@ export function LoginForm({ locale }: { locale: string }) {
   }
 
   return (
-    <section className="py-12">
-      <div className="container-shell">
-        <Card className="mx-auto max-w-md">
-          <CardTitle>Admin Login</CardTitle>
-          <CardContent className="mt-2">Sign in to manage bookings, users, and store credit.</CardContent>
+    <section className="py-12 md:py-16">
+      <div className="container-shell grid items-stretch gap-6 lg:grid-cols-[1fr_440px]">
+        <div className="relative min-h-[360px] overflow-hidden rounded-lg bg-[url('/gallery/salon-chair-portrait.jpeg')] bg-cover bg-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/42 to-transparent" />
+          <div className="relative flex h-full max-w-xl flex-col justify-end p-8 text-white md:p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold-soft">Customer portal</p>
+            <h1 className="mt-3 text-3xl font-bold md:text-5xl">Welcome back</h1>
+            <p className="mt-4 max-w-md text-sm leading-6 text-white/82">
+              Sign in to manage appointments, review booking history, and keep your salon preferences ready for every visit.
+            </p>
+            <div className="mt-8 grid gap-3 text-sm text-white/88 sm:grid-cols-3">
+              <span className="flex items-center gap-2">
+                <CalendarCheck className="h-4 w-4 text-gold-soft" />
+                Bookings
+              </span>
+              <span className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-gold-soft" />
+                Store credit
+              </span>
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-gold-soft" />
+                Secure access
+              </span>
+            </div>
+          </div>
+        </div>
+        <Card className="flex flex-col justify-center">
+          <CardTitle>Sign in</CardTitle>
+          <CardContent className="mt-2">Access your customer account with your email and password.</CardContent>
           <form onSubmit={submit} className="mt-6 space-y-4">
             {error ? <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
             <div className="space-y-2">
