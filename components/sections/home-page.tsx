@@ -28,7 +28,7 @@ export async function HomePage({ locale }: { locale: string }) {
     "@context": "https://schema.org",
     "@type": "HairSalon",
     name: siteConfig.name,
-    alternateName: ["Alshanab Alaswad Salon", "Alshanab Al Aswad", "صالون الشنب الأسود للرجال"],
+    alternateName: ["Alshanab Alaswad Salon", "Alshanab Al Aswad", "صالون الشنب الاسود للرجال"],
     url: siteConfig.url,
     telephone: siteConfig.phone,
     email: siteConfig.email,

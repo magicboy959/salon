@@ -14,7 +14,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
       ? {
           badge: "المعرض",
           title: "المعرض",
-          subtitle: "صور وفيديوهات حقيقية من صالون الشنب الأسود للرجال في دبي السطوة."
+          subtitle: "صور وفيديوهات حقيقية من صالون الشنب الاسود للرجال في دبي السطوة."
         }
       : {
           badge: "Gallery",
