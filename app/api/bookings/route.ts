@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     timeZone: "Asia/Dubai"
   }).format(booking.date);
 
-  await Promise.allSettled([
+  const emailResults = await Promise.allSettled([
     sendBookingConfirmation({
       to: data.email,
       customerName: data.customerName,
@@ -47,6 +47,10 @@ export async function POST(request: NextRequest) {
       notes: data.notes
     })
   ]);
+
+  for (const result of emailResults) {
+    if (result.status === "rejected") console.error("Booking email delivery failed", result.reason);
+  }
 
   return NextResponse.json({ id: booking.id, orderNumber, status: booking.status });
 }

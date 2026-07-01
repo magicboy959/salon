@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import type { Transporter } from "nodemailer";
+import type { SendMailOptions, SentMessageInfo, Transporter } from "nodemailer";
 import { siteConfig } from "@/config/site";
 
 type Mailbox = "booking" | "noreply";
@@ -17,6 +17,10 @@ type BookingEmailInput = {
 };
 
 const transporters: Partial<Record<Mailbox, Transporter>> = {};
+
+type MailDelivery =
+  | { status: "sent"; messageId?: string; accepted?: string[]; rejected?: string[] }
+  | { status: "skipped"; reason: string };
 
 function smtpConfig(mailbox: Mailbox) {
   const user = mailbox === "booking" ? process.env.BOOKING_SMTP_USER : process.env.NOREPLY_SMTP_USER;
@@ -43,15 +47,36 @@ function fromAddress(mailbox: Mailbox) {
   return `${label} <${user}>`;
 }
 
+async function deliverMail(mailbox: Mailbox, purpose: string, options: SendMailOptions): Promise<MailDelivery> {
+  const mailer = transporter(mailbox);
+  if (!mailer) {
+    const reason = `SMTP configuration missing for ${mailbox} mailbox`;
+    console.error(`[mail:${purpose}] ${reason}`);
+    return { status: "skipped", reason };
+  }
+
+  try {
+    const info = (await mailer.sendMail(options)) as SentMessageInfo;
+    const accepted = Array.isArray(info.accepted) ? info.accepted.map(String) : undefined;
+    const rejected = Array.isArray(info.rejected) ? info.rejected.map(String) : undefined;
+    console.info(`[mail:${purpose}] sent`, {
+      messageId: info.messageId,
+      accepted,
+      rejected
+    });
+    return { status: "sent", messageId: info.messageId, accepted, rejected };
+  } catch (error) {
+    console.error(`[mail:${purpose}] delivery failed`, mailError(error));
+    throw error;
+  }
+}
+
 export function bookingOrderNumber(id: string) {
   return `SALON-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
 export async function sendBookingConfirmation(input: BookingEmailInput) {
-  const mailer = transporter("booking");
-  if (!mailer) return { skipped: true };
-
-  return mailer.sendMail({
+  return deliverMail("booking", "booking-confirmation", {
     from: fromAddress("booking"),
     to: input.to,
     subject: `Booking received - ${input.orderNumber}`,
@@ -84,11 +109,13 @@ export async function sendBookingConfirmation(input: BookingEmailInput) {
 }
 
 export async function sendBookingNotification(input: BookingEmailInput) {
-  const mailer = transporter("booking");
   const to = process.env.BOOKING_NOTIFY_TO || process.env.BOOKING_SMTP_USER;
-  if (!mailer || !to) return { skipped: true };
+  if (!to) {
+    console.error("[mail:booking-notification] notification recipient is not configured");
+    return { status: "skipped", reason: "Booking notification recipient is not configured" } satisfies MailDelivery;
+  }
 
-  return mailer.sendMail({
+  return deliverMail("booking", "booking-notification", {
     from: fromAddress("booking"),
     to,
     subject: `New booking - ${input.orderNumber}`,
@@ -107,10 +134,7 @@ export async function sendBookingNotification(input: BookingEmailInput) {
 }
 
 export async function sendWelcomeEmail(input: { to: string; name: string }) {
-  const mailer = transporter("noreply");
-  if (!mailer) return { skipped: true };
-
-  return mailer.sendMail({
+  return deliverMail("noreply", "welcome", {
     from: fromAddress("noreply"),
     to: input.to,
     subject: "Welcome to Alshanab Alaswad Gents Salon",
@@ -126,11 +150,8 @@ export async function sendWelcomeEmail(input: { to: string; name: string }) {
 }
 
 export async function sendPasswordResetEmail(input: { to: string; name?: string | null; resetUrl: string }) {
-  const mailer = transporter("noreply");
-  if (!mailer) return { skipped: true };
-
   const name = input.name || "Customer";
-  return mailer.sendMail({
+  return deliverMail("noreply", "password-reset", {
     from: fromAddress("noreply"),
     to: input.to,
     subject: "Reset your Alshanab Alaswad Salon password",
@@ -166,4 +187,17 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function mailError(error: unknown) {
+  if (!(error instanceof Error)) return error;
+  const details = error as Error & { code?: string; command?: string; responseCode?: number; response?: string };
+  return {
+    name: details.name,
+    code: details.code,
+    command: details.command,
+    responseCode: details.responseCode,
+    message: details.message,
+    response: details.response
+  };
 }

@@ -18,7 +18,11 @@ export async function POST(request: NextRequest) {
   if (reset) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
     const resetUrl = `${siteUrl}/en/reset-password?token=${encodeURIComponent(reset.token)}`;
-    await sendPasswordResetEmail({ to: reset.user.email!, name: reset.user.name, resetUrl });
+    try {
+      await sendPasswordResetEmail({ to: reset.user.email!, name: reset.user.name, resetUrl });
+    } catch (error) {
+      console.error("Password reset email delivery failed", error);
+    }
   }
 
   return NextResponse.json({ ok: true });

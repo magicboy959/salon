@@ -17,13 +17,19 @@ export function ForgotPasswordForm({ locale }: { locale: string }) {
     event.preventDefault();
     setLoading(true);
     setMessage(null);
-    await fetch("/api/password/forgot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-    setMessage("If an account exists for that email, a reset link has been sent.");
-    setLoading(false);
+    try {
+      const response = await fetch("/api/password/forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      if (!response.ok) throw new Error("Password reset is unavailable right now.");
+      setMessage("If an account exists for that email, a reset link has been sent.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Password reset is unavailable right now.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
