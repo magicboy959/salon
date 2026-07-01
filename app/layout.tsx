@@ -14,6 +14,19 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.shortName}`
   },
   description: siteConfig.description,
+  applicationName: siteConfig.name,
+  keywords: [
+    "Alshanab Al Aswad Gents Salon",
+    "Alshanab Al Aswad",
+    "Alshanab Alaswad",
+    "gents salon Dubai",
+    "barber shop Dubai Satwa",
+    "men's salon Dubai"
+  ],
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico"
+  },
   openGraph: {
     type: "website",
     siteName: siteConfig.name,

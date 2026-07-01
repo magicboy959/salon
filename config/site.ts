@@ -1,8 +1,8 @@
 export const siteConfig = {
-  name: "Alshanab Alaswad Salon",
-  shortName: "Alshanab Alaswad",
+  name: "Alshanab Al Aswad Gents Salon",
+  shortName: "Alshanab Al Aswad",
   description:
-    "Luxury men's grooming, VIP barbering, home service, memberships, and premium salon care.",
+    "Luxury gents salon in Dubai for barbering, VIP grooming, home service, memberships, and premium men's salon care.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.alshanabalaswadsalon.com",
   phone: "+971 50 801 2791",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "971508012791",

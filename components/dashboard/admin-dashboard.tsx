@@ -945,7 +945,7 @@ function whatsappUrl(booking: AdminBooking, type: "confirm" | "remind") {
   const message =
     type === "confirm"
       ? `Hello ${booking.customerName}, your booking for ${booking.services || "your service"} is confirmed for ${formatDate(booking.date)}.`
-      : `Hello ${booking.customerName}, reminder for your appointment on ${formatDate(booking.date)} at Alshanab Alaswad Gents Salon.`;
+      : `Hello ${booking.customerName}, reminder for your appointment on ${formatDate(booking.date)} at Alshanab Al Aswad Gents Salon.`;
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
 

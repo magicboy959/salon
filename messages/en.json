@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Alshanab Alaswad Salon",
-    "description": "Luxury men's salon, barbering, home service, memberships, and VIP grooming in Dubai."
+    "title": "Alshanab Al Aswad Gents Salon",
+    "description": "Luxury gents salon in Dubai for barbering, VIP grooming, home service, memberships, and premium men's salon care."
   },
   "nav": {
     "home": "Home",
@@ -26,11 +26,12 @@
     "login": "Sign in",
     "register": "Register",
     "logout": "Log out",
-    "portal": "Portal"
+    "portal": "Portal",
+    "menu": "Menu"
   },
   "home": {
     "eyebrow": "Luxury men's grooming in Dubai",
-    "title": "Alshanab Alaswad Salon",
+    "title": "Alshanab Al Aswad Gents Salon",
     "subtitle": "Precision barbering, VIP grooming suites, memberships, and premium home service with secure booking and live arrival status.",
     "book": "Book appointment",
     "whatsapp": "WhatsApp concierge",

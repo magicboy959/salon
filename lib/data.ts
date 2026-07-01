@@ -212,13 +212,13 @@ export const gallery = [
   {
     type: "image",
     src: "/gallery/store-front.png",
-    alt: "Alshanab Alaswad Gents Salon storefront in Dubai Satwa",
+    alt: "Alshanab Al Aswad Gents Salon storefront in Dubai Satwa",
     title: "Storefront"
   },
   {
     type: "image",
     src: "/gallery/salon-chair-portrait.jpeg",
-    alt: "Customer seated in a barber chair inside Alshanab Alaswad Gents Salon",
+    alt: "Customer seated in a barber chair inside Alshanab Al Aswad Gents Salon",
     title: "Salon Chair"
   },
   {
@@ -242,7 +242,7 @@ export const gallery = [
   {
     type: "image",
     src: "/gallery/hair-color-process.jpeg",
-    alt: "Hair color process inside Alshanab Alaswad Gents Salon",
+    alt: "Hair color process inside Alshanab Al Aswad Gents Salon",
     title: "Hair Colour"
   },
   {
@@ -255,7 +255,7 @@ export const gallery = [
     type: "video",
     src: "/gallery/salon-video.mp4",
     poster: "/gallery/store-front.png",
-    alt: "Salon video from Alshanab Alaswad Gents Salon",
+    alt: "Salon video from Alshanab Al Aswad Gents Salon",
     title: "Salon Video"
   }
 ] as const;

@@ -19,7 +19,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
       : {
           badge: "Gallery",
           title: "Gallery",
-          subtitle: "Real photos and video from Alshanab Alaswad Gents Salon in Dubai Satwa."
+          subtitle: "Real photos and video from Alshanab Al Aswad Gents Salon in Dubai Satwa."
         };
 
   return (

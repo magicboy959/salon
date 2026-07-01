@@ -43,7 +43,7 @@ function transporter(mailbox: Mailbox) {
 
 function fromAddress(mailbox: Mailbox) {
   const user = mailbox === "booking" ? process.env.BOOKING_SMTP_USER : process.env.NOREPLY_SMTP_USER;
-  const label = mailbox === "booking" ? "Alshanab Alaswad Booking" : "Alshanab Alaswad Salon";
+  const label = mailbox === "booking" ? "Alshanab Al Aswad Booking" : "Alshanab Al Aswad Gents Salon";
   return `${label} <${user}>`;
 }
 
@@ -90,7 +90,7 @@ export async function sendBookingConfirmation(input: BookingEmailInput) {
       "",
       "We will contact you to confirm the appointment.",
       "",
-      "Alshanab Alaswad Gents Salon"
+      "Alshanab Al Aswad Gents Salon"
     ].join("\n"),
     html: `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#222">
@@ -102,7 +102,7 @@ export async function sendBookingConfirmation(input: BookingEmailInput) {
         <p><strong>Date:</strong> ${escapeHtml(input.dateTime)}</p>
         <p><strong>Type:</strong> ${escapeHtml(input.appointmentType)}</p>
         <p>We will contact you to confirm the appointment.</p>
-        <p>Alshanab Alaswad Gents Salon</p>
+        <p>Alshanab Al Aswad Gents Salon</p>
       </div>
     `
   });
@@ -137,13 +137,13 @@ export async function sendWelcomeEmail(input: { to: string; name: string }) {
   return deliverMail("noreply", "welcome", {
     from: fromAddress("noreply"),
     to: input.to,
-    subject: "Welcome to Alshanab Alaswad Gents Salon",
-    text: `Hello ${input.name},\n\nWelcome to Alshanab Alaswad Gents Salon. Your customer account is ready.\n\nYou can now book appointments and receive updates from us.\n`,
+    subject: "Welcome to Alshanab Al Aswad Gents Salon",
+    text: `Hello ${input.name},\n\nWelcome to Alshanab Al Aswad Gents Salon. Your customer account is ready.\n\nYou can now book appointments and receive updates from us.\n`,
     html: `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#222">
         <h2>Welcome, ${escapeHtml(input.name)}</h2>
         <p>Your customer account is ready.</p>
-        <p>You can now book appointments and receive updates from Alshanab Alaswad Gents Salon.</p>
+        <p>You can now book appointments and receive updates from Alshanab Al Aswad Gents Salon.</p>
       </div>
     `
   });
@@ -154,7 +154,7 @@ export async function sendPasswordResetEmail(input: { to: string; name?: string 
   return deliverMail("noreply", "password-reset", {
     from: fromAddress("noreply"),
     to: input.to,
-    subject: "Reset your Alshanab Alaswad Salon password",
+    subject: "Reset your Alshanab Al Aswad Gents Salon password",
     text: [
       `Hello ${name},`,
       "",

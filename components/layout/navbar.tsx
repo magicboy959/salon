@@ -37,6 +37,7 @@ export async function Navbar({ locale }: { locale: string }) {
           registerLabel={t("register")}
           logoutLabel={t("logout")}
           portalLabel={t("portal")}
+          menuLabel={t("menu")}
           isAuthenticated={Boolean(session?.user)}
         />
       </div>

@@ -24,6 +24,24 @@ import { GalleryGrid } from "@/components/sections/gallery-grid";
 
 export async function HomePage({ locale }: { locale: string }) {
   const t = await getTranslations("home");
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "HairSalon",
+    name: siteConfig.name,
+    alternateName: ["Alshanab Alaswad Salon", "Alshanab Al Aswad", "صالون الشنب الأسود للرجال"],
+    url: siteConfig.url,
+    telephone: siteConfig.phone,
+    email: siteConfig.email,
+    address: siteConfig.address,
+    image: `${siteConfig.url}/logo.jpeg`,
+    priceRange: "AED",
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: siteConfig.coordinates.lat,
+      longitude: siteConfig.coordinates.lng
+    },
+    sameAs: [siteConfig.instagram]
+  };
   const localCopy =
     locale === "ar"
       ? {
@@ -39,6 +57,10 @@ export async function HomePage({ locale }: { locale: string }) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <section className="relative min-h-[calc(100vh-80px)] overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=2000&q=85"
